@@ -17,7 +17,13 @@ SkyForge ist der XFLIGHT-eigene Drohnensimulator (macOS M4, Unity 6 LTS). Er kom
 | Hardware | Mac Mini M4 Pro (24GB) | — |
 
 ## Aktuelle Phase
-**Phase 0: Planung** — Architektur finalisiert, DevForge v3.3 konfiguriert, nächster Schritt: Unity Setup.
+**Phase 1A: GS-Datenquellen evaluieren** — Abgeschlossen.
+- Erfolgreiche Quelle: mkkellogg GitHub (direkter .ksplat Download)
+- Verfügbare Szenen: bonsai, garden, stump, truck (inkl. _high Varianten)
+- Format: .ksplat (Unity-kompatibel)
+- Pfade: /Users/rudi/Projects/SkyForge/assets/mkkellogg_gs/[scene]/[file].ksplat
+
+**Nächster Schritt: Phase 1B — RunPod-Setup für Performance-Benchmarks**
 
 ## Module
 
