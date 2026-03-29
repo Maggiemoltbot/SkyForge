@@ -1,0 +1,21 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" version="1.0.0" name="OSDOverlay">
+  <ui:VisualElement name="root">
+    <!-- Battery - Top Left -->
+    <ui:Label name="batteryLabel" class="osd-element battery" />
+    
+    <!-- Timer - Top Right -->
+    <ui:Label name="timerLabel" class="osd-element timer" />
+    
+    <!-- Flight Mode - Center Top -->
+    <ui:Label name="modeLabel" class="osd-element flight-mode" />
+    
+    <!-- Altitude - Center Bottom -->
+    <ui:Label name="altitudeLabel" class="osd-element altitude" />
+    
+    <!-- RSSI - Bottom Left -->
+    <ui:Label name="rssiLabel" class="osd-element rssi" />
+    
+    <!-- Armed Status - Bottom Right -->
+    <ui:Label name="armedLabel" class="osd-element armed" />
+  </ui:VisualElement>
+</ui:UXML
