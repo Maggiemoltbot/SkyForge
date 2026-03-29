@@ -1,10 +1,30 @@
 # SkyForge UI Design-Vorgaben
 
-## Corporate Identity
-- **Farben:** XFLIGHT Corporate Identity — Orange, Blau, Schwarz, Weiß
-- **Referenz-Website:** board3000.de (xflight.de) — Schriftart und Farben ableiten
-- **Logo:** Transparentes XFLIGHT Logo einbinden
-- **Partner-Logos:** AI Cloud Partner-Logos im About/Credits-Bereich (nicht im Haupt-UI)
+## Corporate Identity (aus xflight-v3 Website, localhost:3000)
+
+### Farben (CSS Custom Properties)
+| Variable | Hex | Verwendung |
+|----------|-----|------------|
+| `--bg-primary` | `#0A0A0F` | Haupthintergrund (Near-Black) |
+| `--bg-secondary` | `#111118` | Sekundärer Hintergrund |
+| `--bg-card` | `#16161F` | Panel/Card Hintergrund |
+| `--text-primary` | `#FFFFFF` | Haupttext |
+| `--text-secondary` | `#9CA3AF` | Sekundärtext |
+| `--accent-cyan` | `#00D4FF` | Primary Accent (Electric Blue) |
+| `--accent-blue` | `#3B82F6` | Sekundärer Accent |
+| `--accent-violet` | `#8B5CF6` | Tertiärer Accent |
+| `--accent-orange` | `#FF6B00` | XFLIGHT Orange (CTA, Highlights) |
+| `--accent-orange-light` | `#FF8C3A` | Orange Light (Hover) |
+
+### Schrift
+- **Primär:** `Inter` (Website) — in Unity ggf. als importierte TrueType Font
+- **Alternative:** DIN (Corporate Identity PDF) — wenn verfügbar
+- **Fallback:** `-apple-system, BlinkMacSystemFont, sans-serif` (Apple HIG konform)
+
+### Assets
+- **Logo:** Transparentes XFLIGHT Logo (aus Website `/public/` oder Corporate Identity Assets)
+- **Partner-Logos:** AI Cloud Partner-Logos im About/Credits-Bereich
+- **Website Source:** `/Users/rudi/Projects/xflight-v3/` (Next.js, Port 3000)
 
 ## Design-Stil
 - **Apple macOS Human Interface Guidelines** — runde Kanten, Glaseffekte, native Ästhetik
