@@ -92,11 +92,11 @@ public class SkyForgeIntegrator
 
         Debug.Log("[SkyForge] Setup complete! Drone at (0, 2, 0) with Bridge + RC Input + CameraManager configured.");
         Debug.Log("[SkyForge] Next: Start SITL with tools/start_sitl.sh, then press Play.");
-        Debug.Log("[SkyForge] IMPORTANT: Save the scene (Ctrl+S) to persist the setup!");
         Debug.Log("[SkyForge] Camera Controls: F1 = Free Cam, F2 = FPV, F3 = Third Person, Tab = Cycle");
 
-        // Mark scene as dirty so user gets prompted to save
-        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        // Auto-save the scene
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+        Debug.Log("[SkyForge] Scene auto-saved!");
     }
 
     /// <summary>
