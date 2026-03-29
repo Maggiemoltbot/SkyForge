@@ -106,14 +106,10 @@ Kompletter DevForge-Loop: Architekt (qwen3 235B, 30s) → Implementierer A+B par
   - CW/CCW je nach Motor-Position
   - Flache Cylinder als Propeller-Disc
 
-- **DroneOverlay Shader** — Drohne über Gaussian Splats sichtbar machen ⚠️ (In Testing)
-  - Pfad: `Assets/Shaders/DroneOverlay.shader`
-  - Problem: GaussianComposite.shader nutzt `ZTest Always` + Alpha Blend als Fullscreen-Blit
-  - Überschreibt ALLES was vorher gerendert wurde
-  - Lösung: Eigener URP-Shader mit `ZTest Always` + Overlay Queue (4000)
-  - renderQueue-Tricks (2000, 3100) helfen NICHT wegen RenderGraph Unsafe Pass
-  - HUD (OnGUI) funktioniert ✅, Drohne noch nicht bestätigt sichtbar
-  - Commit: `677f9d6`
+- **DroneOverlay Shader:** `ZTest Always` + Overlay Queue (4000) ⚠️ Testing
+  - DroneOverlayFeature.cs: RasterRenderPass + DrawRendererList implementiert ✅
+  - renderPassEvent: AfterRenderingPostProcessing
+  - Visueller Test noch ausstehend
 
 ### Welle 3 Commits
 | Commit | Beschreibung |
@@ -155,6 +151,24 @@ Kompletter DevForge-Loop: Architekt (qwen3 235B, 30s) → Implementierer A+B par
 - GaussianComposite Shader: `ZTest Always` + `Blend SrcAlpha OneMinusSrcAlpha` = überschreibt alles
 - renderQueue allein reicht NICHT gegen GS Composite (RenderGraph Unsafe Pass)
 
+## Session-Log 30. März 2026 (Night Build)
+
+### Welle 4 — UI Toolkit UXML/USS ✅
+- **Start-Screen** (UXML/USS) — Karten-Grid mit 13 Maps, Fly/Setup/Settings/Quit Buttons
+- **Controller-Setup Wizard** (UXML/USS) — 4-Schritt Auto-Detect (Throttle→Yaw→Pitch→Roll)
+- **HUD** (UXML/USS) — ALT/SPD/MODE/ARMED/BAT im Piloten-HUD Stil
+- **Controller-Scripts:** StartScreenController, ControllerSetupController, HUDController
+- XFLIGHT Corporate Design: Dunkel (#1a1a2e), Blau-Akzent (#0066ff)
+- Compile-Fix: VisualAsset→VisualTreeAsset, Doppelter UIManager entfernt
+- Commit: `d523e54`
+
+### DroneOverlayFeature Fix ✅
+- DroneOverlayFeature.cs komplett neu implementiert mit Unity 6 RenderGraph API
+- RasterRenderPass statt UnsafePass, DrawRendererList statt auskommentiertem TODO
+- renderPassEvent: AfterRenderingPostProcessing (nach GS Composite)
+- SortingSettings API-Fix für Unity 6
+- Commit: `abbfa23`
+
 ## Nächste Schritte (30. März 2026)
 
 ### Phase B — Erster Flug
@@ -165,9 +179,9 @@ Kompletter DevForge-Loop: Architekt (qwen3 235B, 30s) → Implementierer A+B par
 5. [ ] Drohne armen + erster Flug testen
 
 ### Drohne sichtbar machen (Prio 1)
-6. [ ] DroneOverlay Shader verifizieren (F3 Third Person)
-7. [ ] Falls nicht: Custom ScriptableRendererFeature (AfterRenderingTransparents)
-8. [ ] Drohnen-Mesh mit eigener Render Queue NACH GS Composite
+6. [x] DroneOverlayFeature korrekt implementiert (RasterRenderPass + DrawRendererList)
+7. [x] Kompiliert fehlerfrei — Visueller Test steht noch aus (F3 Third Person)
+8. [ ] Falls nicht sichtbar: renderPassEvent anpassen oder GS Feature Injection Order prüfen
 
 ### Controller-UI Verbesserung
 9. [ ] FPV-Simulator UI Recherche auswerten (Liftoff, VelociDrone, DRL)
