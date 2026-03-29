@@ -47,23 +47,29 @@ public class PlaceholderMesh : MonoBehaviour
     }
     
     /// <summary>
-    /// Forces a material to render AFTER the Gaussian Splat composite pass.
-    /// The GS composite uses ZTest Always + alpha blend, so it overwrites
-    /// anything rendered before it. We must render the drone AFTER splats.
-    /// RenderQueue 3100 = after BeforeRenderingTransparents (where splats render).
+    /// Uses a custom overlay shader that renders AFTER the Gaussian Splat composite pass.
+    /// The GS composite uses ZTest Always + alpha blend at BeforeRenderingTransparents,
+    /// so it overwrites anything rendered before. Our DroneOverlay shader also uses
+    /// ZTest Always but in the Overlay queue (4000), ensuring the drone is visible.
     /// </summary>
     private void ForceOpaqueRendering(Renderer renderer, Color color)
     {
-        Material mat = renderer.material;
-        mat.color = color;
-        mat.SetFloat("_Surface", 0); // 0 = Opaque in URP Lit
-        mat.SetFloat("_Blend", 0);
-        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-        mat.SetInt("_ZWrite", 1);
-        mat.renderQueue = 3100; // After transparent — renders AFTER Gaussian Splat composite
-        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        mat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        // Use our custom overlay shader that renders AFTER Gaussian Splats
+        Shader overlayShader = Shader.Find("SkyForge/DroneOverlay");
+        if (overlayShader != null)
+        {
+            Material mat = new Material(overlayShader);
+            mat.SetColor("_Color", color);
+            renderer.material = mat;
+        }
+        else
+        {
+            // Fallback: just set color on default material
+            Material mat = renderer.material;
+            mat.color = color;
+            mat.renderQueue = 4000; // Overlay queue
+            Debug.LogWarning("[SkyForge] DroneOverlay shader not found! Falling back to default material.");
+        }
     }
 
     void CreateCenterCube()

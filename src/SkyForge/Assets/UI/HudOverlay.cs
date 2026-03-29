@@ -45,6 +45,9 @@ public class HudOverlay : MonoBehaviour
     
     void OnGUI()
     {
+        // Debug: always show something even if references are null
+        GUI.Label(new Rect(10, 10, 200, 30), "HUD ACTIVE", new GUIStyle(GUI.skin.label) { fontSize = 20, normal = { textColor = Color.magenta } });
+        
         // Setup styles once
         if (labelStyle == null)
         {
