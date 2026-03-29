@@ -143,6 +143,9 @@ public class RCInputBridge : MonoBehaviour
         // Read AUX button toggles
         ReadAuxButtonsGeneric(device);
 
+        // Read AUX axes
+        ReadAuxAxes(device);
+
         // Send at configured rate
         timeSinceLastSend += Time.deltaTime;
         if (timeSinceLastSend >= sendInterval)
@@ -270,6 +273,26 @@ public class RCInputBridge : MonoBehaviour
             auxButtonPrevState[i] = pressed;
 
             channels[config.auxMappings[i].rcChannel] = auxToggleState[i] ? (ushort)2000 : (ushort)1000;
+        }
+    }
+
+    /// <summary>
+    /// Reads AUX axes and maps them to RC channels
+    /// </summary>
+    private void ReadAuxAxes(InputDevice device)
+    {
+        if (config.auxAxisMappings == null) return;
+        foreach (var mapping in config.auxAxisMappings)
+        {
+            var control = device.TryGetChildControl(mapping.axisName) as AxisControl;
+            if (control == null) continue;
+            
+            float value = control.ReadValue();
+            if (mapping.invert) value = -value;
+            
+            // Map to PWM: -1..+1 → 1000..2000
+            ushort pwm = (ushort)(1500 + (int)(value * 500));
+            channels[mapping.rcChannel] = pwm;
         }
     }
 

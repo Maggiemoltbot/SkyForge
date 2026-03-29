@@ -65,6 +65,14 @@ public class ControllerConfig : ScriptableObject
         new AuxButtonMapping { rcChannel = 6, buttonName = "Button West (X/Square)" },
         new AuxButtonMapping { rcChannel = 7, buttonName = "Button North (Y/Triangle)" },
     };
+
+    [Header("AUX Channel Axes")]
+    [Tooltip("Map gamepad axes to AUX channels (continuous values)")]
+    public AuxAxisMapping[] auxAxisMappings = new AuxAxisMapping[]
+    {
+        new AuxAxisMapping { rcChannel = 4, axisName = "" }, // AUX1 (M/S/N Switch)
+        new AuxAxisMapping { rcChannel = 5, axisName = "" }, // AUX2 (Rechter Kippschalter)
+    };
 }
 
 /// <summary>
@@ -101,4 +109,34 @@ public class AuxButtonMapping
 
     [Tooltip("Description of the mapped button")]
     public string buttonName = "";
+}
+
+/// <summary>
+/// Mapping configuration for an AUX axis
+/// </summary>
+[System.Serializable]
+public class AuxAxisMapping
+{
+    [Tooltip("Target RC channel index")]
+    [Range(4, 15)]
+    public int rcChannel = 4;
+
+    [Tooltip("Name of the axis control (e.g., 'stick/z' or gamepad axis)")]
+    public string axisName = "";
+
+    [Tooltip("Invert this axis")]
+    public bool invert = false;
+
+    [Tooltip("Threshold for digital mode - value above which channel is considered active")]
+    [Range(0f, 1f)]
+    public float threshold = 0.5f;
+
+    [Tooltip("Axis mode - determines how analog values are mapped to PWM")]
+    public AuxAxisMode mode = AuxAxisMode.ThreePosition;
+}
+
+public enum AuxAxisMode 
+{ 
+    TwoPosition, 
+    ThreePosition 
 }

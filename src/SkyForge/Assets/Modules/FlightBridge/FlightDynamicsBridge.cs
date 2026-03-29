@@ -15,6 +15,9 @@ public class FlightDynamicsBridge : MonoBehaviour
     [SerializeField] private BridgeConfig config;
     [SerializeField] private DroneController droneController;
     
+    [Header("IMU Simulation")]
+    [SerializeField] private IMUSimulator imuSimulator;
+    
     [Header("Status")]
     [SerializeField] private bool isConnected = false;
     [SerializeField] private int fdmPacketsSent = 0;
@@ -108,19 +111,35 @@ public class FlightDynamicsBridge : MonoBehaviour
             
         try
         {
+            // Get IMU data from simulator if available, otherwise fallback to drone controller
+            Vector3 angularVelocity = Vector3.zero;
+            Vector3 linearAcceleration = Vector3.zero;
+            
+            if (imuSimulator != null)
+            {
+                angularVelocity = imuSimulator.GetGyroData();
+                linearAcceleration = imuSimulator.GetAccelerometerData();
+            }
+            else
+            {
+                // Fallback to drone controller data
+                angularVelocity = droneController.CurrentAngularVelocity;
+                linearAcceleration = droneController.CurrentLinearAcceleration;
+            }
+            
             FDMPacket packet = new FDMPacket
             {
                 timestamp = Time.time,
                 
                 // Convert angular velocity to NED
-                imuAngularVelX = droneController.CurrentAngularVelocity.x,
-                imuAngularVelY = droneController.CurrentAngularVelocity.y,
-                imuAngularVelZ = droneController.CurrentAngularVelocity.z,
+                imuAngularVelX = angularVelocity.x,
+                imuAngularVelY = angularVelocity.y,
+                imuAngularVelZ = angularVelocity.z,
                 
                 // Convert linear acceleration to NED
-                imuLinearAccX = droneController.CurrentLinearAcceleration.x,
-                imuLinearAccY = droneController.CurrentLinearAcceleration.y,
-                imuLinearAccZ = droneController.CurrentLinearAcceleration.z,
+                imuLinearAccX = linearAcceleration.x,
+                imuLinearAccY = linearAcceleration.y,
+                imuLinearAccZ = linearAcceleration.z,
                 
                 // Convert quaternion to NED
                 quatW = droneController.CurrentAttitude.w,
