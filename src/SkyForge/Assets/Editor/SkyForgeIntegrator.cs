@@ -51,10 +51,35 @@ public class SkyForgeIntegrator
         // Set private field via SerializedObject
         SetSerializedField(rcInput, "config", controllerConfig);
 
-        // 6. Mark everything dirty and save
+        // 6. Create CameraManager
+        GameObject cameraManagerObj = new GameObject("CameraManager");
+        CameraManager cameraManager = cameraManagerObj.AddComponent<CameraManager>();
+        
+        // Find the required components
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            mainCamera = GameObject.FindObjectOfType<Camera>();
+        }
+        
+        // Try to find the FPV camera on the drone
+        Camera fpvCamera = null;
+        FPVCamera fpvCameraComponent = drone.GetComponentInChildren<FPVCamera>();
+        if (fpvCameraComponent != null)
+        {
+            fpvCamera = fpvCameraComponent.GetComponent<Camera>();
+        }
+        
+        // Set the camera manager references
+        cameraManager.mainCamera = mainCamera;
+        cameraManager.fpvCamera = fpvCamera;
+        cameraManager.droneTransform = drone.transform;
+
+        // 7. Mark everything dirty and save
         EditorUtility.SetDirty(drone);
         EditorUtility.SetDirty(bridgeObj);
         EditorUtility.SetDirty(rcObj);
+        EditorUtility.SetDirty(cameraManagerObj);
         EditorUtility.SetDirty(droneConfig);
         EditorUtility.SetDirty(bridgeConfig);
         EditorUtility.SetDirty(controllerConfig);
@@ -65,9 +90,10 @@ public class SkyForgeIntegrator
         // Select the drone in hierarchy
         Selection.activeGameObject = drone;
 
-        Debug.Log("[SkyForge] Setup complete! Drone at (0, 2, 0) with Bridge + RC Input configured.");
+        Debug.Log("[SkyForge] Setup complete! Drone at (0, 2, 0) with Bridge + RC Input + CameraManager configured.");
         Debug.Log("[SkyForge] Next: Start SITL with tools/start_sitl.sh, then press Play.");
         Debug.Log("[SkyForge] IMPORTANT: Save the scene (Ctrl+S) to persist the setup!");
+        Debug.Log("[SkyForge] Camera Controls: F1 = Free Cam, F2 = FPV, F3 = Third Person, Tab = Cycle");
 
         // Mark scene as dirty so user gets prompted to save
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
