@@ -112,32 +112,32 @@ public class FlightDynamicsBridge : MonoBehaviour
                 timestamp = Time.time,
                 
                 // Convert angular velocity to NED
-                imuAngularVelX = droneController.angularVelocity.x,
-                imuAngularVelY = droneController.angularVelocity.y,
-                imuAngularVelZ = droneController.angularVelocity.z,
+                imuAngularVelX = droneController.CurrentAngularVelocity.x,
+                imuAngularVelY = droneController.CurrentAngularVelocity.y,
+                imuAngularVelZ = droneController.CurrentAngularVelocity.z,
                 
                 // Convert linear acceleration to NED
-                imuLinearAccX = droneController.linearAcceleration.x,
-                imuLinearAccY = droneController.linearAcceleration.y,
-                imuLinearAccZ = droneController.linearAcceleration.z,
+                imuLinearAccX = droneController.CurrentLinearAcceleration.x,
+                imuLinearAccY = droneController.CurrentLinearAcceleration.y,
+                imuLinearAccZ = droneController.CurrentLinearAcceleration.z,
                 
                 // Convert quaternion to NED
-                quatW = droneController.attitude.w,
-                quatX = droneController.attitude.x,
-                quatY = droneController.attitude.y,
-                quatZ = droneController.attitude.z,
+                quatW = droneController.CurrentAttitude.w,
+                quatX = droneController.CurrentAttitude.x,
+                quatY = droneController.CurrentAttitude.y,
+                quatZ = droneController.CurrentAttitude.z,
                 
                 // Convert velocity to NED
-                velX = droneController.velocity.x,
-                velY = droneController.velocity.y,
-                velZ = droneController.velocity.z,
+                velX = droneController.CurrentVelocity.x,
+                velY = droneController.CurrentVelocity.y,
+                velZ = droneController.CurrentVelocity.z,
                 
                 // Convert position to NED
-                posX = droneController.position.x,
-                posY = droneController.position.y,
-                posZ = droneController.position.z,
+                posX = droneController.CurrentPosition.x,
+                posY = droneController.CurrentPosition.y,
+                posZ = droneController.CurrentPosition.z,
                 
-                pressure = droneController.pressure
+                pressure = droneController.CurrentPressure
             };
             
             // Serialize packet to byte array

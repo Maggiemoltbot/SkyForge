@@ -47,8 +47,11 @@ SkyForge ist der XFLIGHT-eigene Drohnensimulator (macOS M4, Unity 6 LTS). Er kom
 - **BF SITL läuft** und empfängt RC-Daten vom TX16S via Unity Bridge ✅
 
 ### Fixes & Learnings
+- MCP: .mcp.json Config muss `uvx --from mcpforunityserver` nutzen, nicht `node`
+- .gitignore: `/assets/` statt `assets/` — sonst werden Unity Assets/ Ordner ausgeschlossen
+- DroneController Properties: `new` keyword reicht nicht — Properties umbenannt zu `Current*` Prefix
+- Input System: "Both" Mode bleibt aktiv (Old für FlyCamera, New für RCInputBridge)
 - DroneController.cs: `rb.linearAcceleration` existiert nicht → manuell berechnet aus Velocity-Differenz
-- DroneController.cs: `position` Property braucht `new` Keyword (MonoBehaviour member hiding)
 - Duplicate DroneController in FlightBridge entfernt (Bridge hatte eigenen Placeholder)
 - RCInputBridge: `Gamepad.current` findet TX16S nicht → Fallback auf `Joystick.current` nötig
 - RCInputBridge: `enabled = false` in OnEnable verursacht Config-Verlust → Lazy Init implementiert
@@ -191,6 +194,9 @@ Pfad: /Users/rudi/Projects/SkyForge/assets/3dgs-official/[scene]/point_cloud/ite
 | Betaflight SITL | betaflight/ | ✅ Kompiliert + läuft |
 | FlyCamera | Assets/Scripts/FlyCamera.cs | ✅ Funktioniert |
 | RL Training Engine | Assets/Modules/RLTraining/ | ⏳ Phase 2 |
+| MCP Integration | .mcp.json + Packages/manifest.json | ✅ Plugin installiert, Claude Code connected |
+| Editor Commands | Assets/Editor/SkyForgeCommandHandler.cs | ✅ 6 Befehle (HealthCheck, Scenes, Build, Prefabs) |
+| Batch Runner | tools/unity_batch.sh | ✅ Headless Unity-Steuerung per CLI |
 
 ## DevForge v3.3 Modell-Mapping
 

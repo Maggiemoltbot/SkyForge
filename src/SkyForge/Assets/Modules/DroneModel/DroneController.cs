@@ -131,11 +131,11 @@ public class DroneController : MonoBehaviour
         return cachedLinearAcceleration;
     }
 
-    // Properties für FlightDynamicsBridge Zugriff
-    public new Vector3 position => transform.position;
-    public Quaternion attitude => transform.rotation;
-    public Vector3 velocity => rb != null ? rb.linearVelocity : Vector3.zero;
-    public Vector3 angularVelocity => rb != null ? rb.angularVelocity : Vector3.zero;
-    public Vector3 linearAcceleration => cachedLinearAcceleration;
-    public float pressure => 1013.25f; // Standard sea level hPa (placeholder)
+    // Bridge-Access Properties (Prefix 'Current' um Member-Hiding zu vermeiden)
+    public Vector3 CurrentPosition => transform.position;
+    public Quaternion CurrentAttitude => transform.rotation;
+    public Vector3 CurrentVelocity => rb != null ? rb.linearVelocity : Vector3.zero;
+    public Vector3 CurrentAngularVelocity => rb != null ? rb.angularVelocity : Vector3.zero;
+    public Vector3 CurrentLinearAcceleration => cachedLinearAcceleration;
+    public float CurrentPressure => 1013.25f; // Standard sea level hPa (placeholder)
 }
