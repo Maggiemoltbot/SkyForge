@@ -47,9 +47,10 @@ public class PlaceholderMesh : MonoBehaviour
     }
     
     /// <summary>
-    /// Forces a material into the Opaque render queue (2000) so it renders
-    /// BEFORE the Gaussian Splat pass (BeforeRenderingTransparents).
-    /// Without this, primitives can be invisible behind splats.
+    /// Forces a material to render AFTER the Gaussian Splat composite pass.
+    /// The GS composite uses ZTest Always + alpha blend, so it overwrites
+    /// anything rendered before it. We must render the drone AFTER splats.
+    /// RenderQueue 3100 = after BeforeRenderingTransparents (where splats render).
     /// </summary>
     private void ForceOpaqueRendering(Renderer renderer, Color color)
     {
@@ -60,7 +61,7 @@ public class PlaceholderMesh : MonoBehaviour
         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
         mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
         mat.SetInt("_ZWrite", 1);
-        mat.renderQueue = 2000; // Geometry queue — before splats
+        mat.renderQueue = 3100; // After transparent — renders AFTER Gaussian Splat composite
         mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         mat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
     }
