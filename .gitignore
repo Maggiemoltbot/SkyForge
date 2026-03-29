@@ -18,10 +18,16 @@ Thumbs.db
 .idea/
 
 # Large Assets (GS Maps, PLY, KSPLAT) — too large for GitHub
-assets/
+/assets/
 src/SkyForge/Assets/StreamingAssets/GaussianSplats/
+src/SkyForge/Assets/GaussianAssets/
 *.ply
 *.ksplat
+*_chk.bytes
+*_col.bytes
+*_oth.bytes
+*_pos.bytes
+*_shs.bytes
 
 # Betaflight build artifacts
 betaflight/obj/

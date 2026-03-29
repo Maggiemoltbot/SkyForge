@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "unity-mcp": {
+      "command": "node",
+      "args": [
+        "Packages/com.komao.unity-mcp/Server/index.js"
+      ],
+      "env": {
+        "MCP_UNITY_HTTP_URL": "http://localhost:8090"
+      }
+    }
+  }
+}
