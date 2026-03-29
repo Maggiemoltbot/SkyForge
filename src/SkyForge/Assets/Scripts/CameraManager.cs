@@ -12,6 +12,7 @@ public class CameraManager : MonoBehaviour
     [SerializeField] private float followSpeed = 5f;
     
     private CameraMode currentMode = CameraMode.FreeCam;
+    public CameraMode CurrentMode => currentMode;
     private FlyCamera flyCameraComponent;
     private Vector3 fpvPosition = new Vector3(0, 0.02f, 0.05f);
     private float freeCamFOV = 60f;

@@ -40,12 +40,31 @@ public class PlaceholderMesh : MonoBehaviour
         CreateArm(Vector3.left, "LeftArm");          // Left
         
         // Create motor markers
-        CreateMotorMarker(new Vector3(armLength, 0, armLength), Color.red, "FL_Motor");     // Front Left
-        CreateMotorMarker(new Vector3(armLength, 0, -armLength), Color.green, "FR_Motor");  // Front Right
-        CreateMotorMarker(new Vector3(-armLength, 0, armLength), Color.blue, "BL_Motor");   // Back Left
-        CreateMotorMarker(new Vector3(-armLength, 0, -armLength), Color.yellow, "BR_Motor"); // Back Right
+        CreateMotorMarker(new Vector3(armLength, 0, armLength), Color.red, "FL_Motor", 0, true);      // FL, CW
+        CreateMotorMarker(new Vector3(armLength, 0, -armLength), Color.green, "FR_Motor", 1, false);   // FR, CCW
+        CreateMotorMarker(new Vector3(-armLength, 0, armLength), Color.blue, "BL_Motor", 2, false);    // BL, CCW
+        CreateMotorMarker(new Vector3(-armLength, 0, -armLength), Color.yellow, "BR_Motor", 3, true);  // BR, CW
     }
     
+    /// <summary>
+    /// Forces a material into the Opaque render queue (2000) so it renders
+    /// BEFORE the Gaussian Splat pass (BeforeRenderingTransparents).
+    /// Without this, primitives can be invisible behind splats.
+    /// </summary>
+    private void ForceOpaqueRendering(Renderer renderer, Color color)
+    {
+        Material mat = renderer.material;
+        mat.color = color;
+        mat.SetFloat("_Surface", 0); // 0 = Opaque in URP Lit
+        mat.SetFloat("_Blend", 0);
+        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+        mat.SetInt("_ZWrite", 1);
+        mat.renderQueue = 2000; // Geometry queue — before splats
+        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        mat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+    }
+
     void CreateCenterCube()
     {
         GameObject center = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -54,9 +73,8 @@ public class PlaceholderMesh : MonoBehaviour
         center.transform.localPosition = Vector3.zero;
         center.transform.localScale = new Vector3(centerSize, centerSize, centerSize);
         
-        // Set color
-        Renderer renderer = center.GetComponent<Renderer>();
-        renderer.material.color = Color.gray;
+        // Force opaque rendering so drone is visible with Gaussian Splats
+        ForceOpaqueRendering(center.GetComponent<Renderer>(), Color.gray);
         
         // Remove collider to prevent interference
         Destroy(center.GetComponent<Collider>());
@@ -82,15 +100,14 @@ public class PlaceholderMesh : MonoBehaviour
             arm.transform.localScale = new Vector3(armLength, armHeight, armWidth);
         }
         
-        // Set color
-        Renderer renderer = arm.GetComponent<Renderer>();
-        renderer.material.color = Color.white;
+        // Force opaque rendering so arm is visible with Gaussian Splats
+        ForceOpaqueRendering(arm.GetComponent<Renderer>(), Color.white);
         
         // Remove collider to prevent interference
         Destroy(arm.GetComponent<Collider>());
     }
     
-    void CreateMotorMarker(Vector3 localPosition, Color color, string name)
+    void CreateMotorMarker(Vector3 localPosition, Color color, string name, int motorIndex, bool clockwise)
     {
         GameObject motor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         motor.name = name;
@@ -98,11 +115,61 @@ public class PlaceholderMesh : MonoBehaviour
         motor.transform.localPosition = localPosition;
         motor.transform.localScale = new Vector3(motorSphereSize, motorSphereSize, motorSphereSize);
         
-        // Set color
-        Renderer renderer = motor.GetComponent<Renderer>();
-        renderer.material.color = color;
+        // Force opaque rendering so motor is visible with Gaussian Splats
+        ForceOpaqueRendering(motor.GetComponent<Renderer>(), color);
         
         // Remove collider to prevent interference
         Destroy(motor.GetComponent<Collider>());
+        
+        // Add LED thrust indicator
+        LEDThrustIndicator led = motor.AddComponent<LEDThrustIndicator>();
+        led.motorIndex = motorIndex;
+
+        // Create propeller disc
+        GameObject propeller = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        propeller.name = name.Replace("Motor", "Propeller");
+        propeller.transform.SetParent(motor.transform);
+        propeller.transform.localPosition = new Vector3(0, 0.01f, 0); // Leicht über Motor
+        propeller.transform.localScale = new Vector3(0.1f, 0.002f, 0.1f); // Flache Disc
+
+        // Force opaque so propeller is visible with Gaussian Splats
+        ForceOpaqueRendering(propeller.GetComponent<Renderer>(), new Color(0.5f, 0.5f, 0.5f, 1f));
+
+        Destroy(propeller.GetComponent<Collider>()); // Kein Collider
+
+        PropellerRotation propRotation = propeller.AddComponent<PropellerRotation>();
+        propRotation.motorIndex = motorIndex;
+        propRotation.clockwise = clockwise;
+    }
+    
+    // Overloaded method to maintain compatibility
+    void CreateMotorMarker(Vector3 localPosition, Color color, string name)
+    {
+        // Default values for index and rotation direction
+        int motorIndex = 0;
+        bool clockwise = true;
+        
+        // Determine motor index based on name
+        switch (name)
+        {
+            case "FL_Motor":
+                motorIndex = 0;
+                clockwise = true;  // CW
+                break;
+            case "FR_Motor":
+                motorIndex = 1;
+                clockwise = false; // CCW
+                break;
+            case "BL_Motor":
+                motorIndex = 2;
+                clockwise = false; // CCW
+                break;
+            case "BR_Motor":
+                motorIndex = 3;
+                clockwise = true;  // CW
+                break;
+        }
+        
+        CreateMotorMarker(localPosition, color, name, motorIndex, clockwise);
     }
 }

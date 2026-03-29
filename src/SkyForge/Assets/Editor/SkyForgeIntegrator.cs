@@ -74,12 +74,27 @@ public class SkyForgeIntegrator
         // Make invisible — keep only the MeshCollider
         Object.DestroyImmediate(ground.GetComponent<MeshRenderer>());
 
-        // 8. Mark everything dirty and save
+        // 8. Create HUD Overlay
+        GameObject hudObj = new GameObject("HudOverlay");
+        HudOverlay hud = hudObj.AddComponent<HudOverlay>();
+        hud.drone = droneController;
+        hud.cameraManager = cameraManager;
+        hud.rcBridge = rcInput;
+
+        // 9. Create Controller Config Panel (F4)
+        GameObject configPanelObj = new GameObject("ControllerConfigPanel");
+        ControllerConfigPanel configPanel = configPanelObj.AddComponent<ControllerConfigPanel>();
+        configPanel.config = controllerConfig;
+        configPanel.rcBridge = rcInput;
+
+        // 10. Mark everything dirty and save
         EditorUtility.SetDirty(drone);
         EditorUtility.SetDirty(bridgeObj);
         EditorUtility.SetDirty(rcObj);
         EditorUtility.SetDirty(cameraManagerObj);
         EditorUtility.SetDirty(ground);
+        EditorUtility.SetDirty(hudObj);
+        EditorUtility.SetDirty(configPanelObj);
         EditorUtility.SetDirty(droneConfig);
         EditorUtility.SetDirty(bridgeConfig);
         EditorUtility.SetDirty(controllerConfig);
@@ -90,9 +105,9 @@ public class SkyForgeIntegrator
         // Select the drone in hierarchy
         Selection.activeGameObject = drone;
 
-        Debug.Log("[SkyForge] Setup complete! Drone at (0, 2, 0) with Bridge + RC Input + CameraManager configured.");
+        Debug.Log("[SkyForge] Setup complete! Drone at (0, 2, 0) with Bridge + RC Input + CameraManager + HUD + Controller Config.");
         Debug.Log("[SkyForge] Next: Start SITL with tools/start_sitl.sh, then press Play.");
-        Debug.Log("[SkyForge] Camera Controls: F1 = Free Cam, F2 = FPV, F3 = Third Person, Tab = Cycle");
+        Debug.Log("[SkyForge] Controls: F1=FreeCam, F2=FPV, F3=ThirdPerson, F4=Controller Config, Tab=Cycle Cameras");
 
         // Auto-save the scene
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
