@@ -1,13 +1,12 @@
 {
   "mcpServers": {
     "unity-mcp": {
-      "command": "node",
+      "command": "uvx",
       "args": [
-        "Packages/com.komao.unity-mcp/Server/index.js"
-      ],
-      "env": {
-        "MCP_UNITY_HTTP_URL": "http://localhost:8090"
-      }
+        "--from", "mcpforunityserver",
+        "mcp-for-unity",
+        "--transport", "stdio"
+      ]
     }
   }
 }

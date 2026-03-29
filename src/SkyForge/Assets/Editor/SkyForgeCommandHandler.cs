@@ -6,12 +6,12 @@ namespace SkyForge.Editor
 {
     public static class SkyForgeCommandHandler
     {
-        // �ffnet eine Szene per Pfad
+        // Oeffnet eine Szene per Pfad
         [MenuItem("SkyForge/Open Welle1Test Scene")]
         public static void OpenWelle1TestScene()
         {
             EditorSceneManager.OpenScene("Assets/Scenes/Welle1Test.unity");
-            Debug.Log("[SkyForge] Welle1Test Scene ge�ffnet");
+            Debug.Log("[SkyForge] Welle1Test Scene geoeffnet");
         }
 
         // Listet alle Scenes im Build
@@ -22,17 +22,16 @@ namespace SkyForge.Editor
                 Debug.Log($"[SkyForge] Build Scene: {s.path} (enabled: {s.enabled})");
         }
 
-        // F�gt eine Scene zu den Build Settings hinzu
+        // Fuegt eine Scene zu den Build Settings hinzu
         public static void AddSceneToBuild()
         {
-            // Welle1Test zur Build-Liste hinzuf�gen
             var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
             var newScene = new EditorBuildSettingsScene("Assets/Scenes/Welle1Test.unity", true);
             if (!scenes.Exists(s => s.path == newScene.path))
             {
                 scenes.Add(newScene);
                 EditorBuildSettings.scenes = scenes.ToArray();
-                Debug.Log("[SkyForge] Welle1Test zu Build Settings hinzugef�gt");
+                Debug.Log("[SkyForge] Welle1Test zu Build Settings hinzugefuegt");
             }
         }
 
