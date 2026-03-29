@@ -1,5 +1,5 @@
 # SkyForge — PROJECT_CONTEXT.md
-**Aktualisiert:** 29. März 2026, 10:35 | **DevForge:** v3.3
+**Aktualisiert:** 29. März 2026, 21:15 | **DevForge:** v3.3
 
 ## Projekt-Übersicht
 SkyForge ist der XFLIGHT-eigene Drohnensimulator (macOS M4, Unity 6 LTS). Er kombiniert Betaflight SITL (echte Firmware), Gaussian Splatting (fotorealistische 3D-Welten) und Reinforcement Learning (Maggie lernt fliegen). Zwei Modi: Rudi fliegt manuell (FPV-Training), Maggie fliegt autonom (KI-gesteuert).
@@ -39,134 +39,224 @@ SkyForge ist der XFLIGHT-eigene Drohnensimulator (macOS M4, Unity 6 LTS). Er kom
 - **Paket C:** DroneModel erstellt (Rigidbody, 4 Motoren, FPV Camera) ✅
   - Pfad: Assets/Modules/DroneModel/
   - Dateien: DroneController.cs, MotorModel.cs, DroneConfig.cs, DroneSetup.cs, FPVCamera.cs, PlaceholderMesh.cs
-- **Controller:** RadioMaster TX16S erkannt als USB Joystick (VendorID 0x0483, 8 Achsen, 24 Buttons) ✅
+- **Controller:** RadioMaster TX16S erkannt als USB Joystick ✅
   - Pfad: Assets/Modules/ControllerInput/
   - Dateien: RCInputBridge.cs, ControllerConfig.cs, RCPacket.cs
-  - EdgeTX USB Joystick Modus (nicht Mass Storage!)
-  - DJI FPV RC 2 wird NICHT als Gamepad erkannt (nur Lademodus per USB-C)
-- **BF SITL läuft** und empfängt RC-Daten vom TX16S via Unity Bridge ✅
 
-### Fixes & Learnings
+## Session-Log 29. März 2026
+
+### Welle 2 Abschluss — DevForge Loop ✅
+Kompletter DevForge-Loop: Architekt (qwen3 235B, 30s) → Implementierer A+B parallel (qwen3-coder, ~1m30s) → QA (qwen3-small, 1m40s)
+
+- **SkyForgeIntegrator.cs** — Ein-Klick Scene Setup: SkyForge → Setup Drone in Scene ✅
+  - Erstellt automatisch: Drone, FlightDynamicsBridge, RCInputBridge, CameraManager, GroundPlane, HUD, ControllerConfigPanel
+  - Konfiguriert alle Referenzen + ScriptableObject Assets
+  - Auto-Save der Scene nach Setup
+  - Commit: `5c7bd3d`
+
+- **SITL Tools** — Shell Scripts für Betaflight SITL ✅
+  - `tools/start_sitl.sh` — Startet SITL, wartet auf Ports, zeigt Verbindungsinfo
+  - `tools/stop_sitl.sh` — Stoppt SITL sauber
+  - `tools/test_integration.sh` — Testet UDP-Verbindung
+  - `tools/arm_sitl.sh` — Armed SITL via MSP
+
+- **CameraManager.cs** — Single-Camera Ansatz (Main Camera für alle Modi) ✅
+  - F1 = FreeCam (WASD + Maus via FlyCamera)
+  - F2 = FPV (auf der Drohne, 120° FOV)
+  - F3 = Third Person (Chase Cam, Offset 0/2/-5)
+  - Tab = Cycle Cameras
+  - Commit: `c4fd920`
+
+- **Port-Fix** — UDP Ports waren vertauscht ✅
+  - 9002 = Unity empfängt PWM von SITL
+  - 9003 = Unity sendet FDM an SITL
+
+- **Ground Plane** — Unsichtbarer Collider auf Y=0 (1000m x 1000m) ✅
+  - Drohne fällt nicht mehr ins Unendliche
+  - Commit: `457ae03`
+
+### Welle 3 — UI & Usability ✅ (Code fertig, Testing läuft)
+
+- **Controller-Konfigurator (F4)** — Runtime OnGUI Panel ✅
+  - Pfad: `Assets/UI/ControllerConfigPanel.cs`
+  - Kanal-Zuordnung (RC-Channel 0-15 pro Achse)
+  - Invert-Toggle pro Achse
+  - Deadzone-Slider (0-0.5)
+  - Expo-Slider (0-1)
+  - Live PWM-Werte von RCInputBridge
+  - JSON Save/Load (`Application.persistentDataPath/ControllerMapping.json`)
+  - Verschiebbares GUILayout.Window
+
+- **HUD Overlay** — Flugdaten rechts unten ✅
+  - Pfad: `Assets/UI/HudOverlay.cs`
+  - ALT (Höhe), SPD (Geschwindigkeit), MODE (Kameramodus)
+  - ARM (Armed/Disarmed basierend auf motorPWM)
+  - BAT (Batterie-Simulation, sinkt wenn armed)
+  - SITL Connection Status
+  - Grüne Pilot-HUD Optik
+  - Debug-Label "HUD ACTIVE" oben links (Magenta)
+
+- **LED Thrust Indicator** — Motor-Farben nach Thrust ✅
+  - Pfad: `Assets/Modules/DroneModel/LEDThrustIndicator.cs`
+  - Grün (idle) → Gelb (mittel) → Rot (Vollgas)
+  - MaterialPropertyBlock für Performance (_BaseColor)
+
+- **Propeller Rotation** — Drehen proportional zum PWM ✅
+  - Pfad: `Assets/Modules/DroneModel/PropellerRotation.cs`
+  - CW/CCW je nach Motor-Position
+  - Flache Cylinder als Propeller-Disc
+
+- **DroneOverlay Shader** — Drohne über Gaussian Splats sichtbar machen ⚠️ (In Testing)
+  - Pfad: `Assets/Shaders/DroneOverlay.shader`
+  - Problem: GaussianComposite.shader nutzt `ZTest Always` + Alpha Blend als Fullscreen-Blit
+  - Überschreibt ALLES was vorher gerendert wurde
+  - Lösung: Eigener URP-Shader mit `ZTest Always` + Overlay Queue (4000)
+  - renderQueue-Tricks (2000, 3100) helfen NICHT wegen RenderGraph Unsafe Pass
+  - HUD (OnGUI) funktioniert ✅, Drohne noch nicht bestätigt sichtbar
+  - Commit: `677f9d6`
+
+### Welle 3 Commits
+| Commit | Beschreibung |
+|--------|-------------|
+| `5c7bd3d` | Welle 2 Integration: SkyForgeIntegrator + SITL Tools |
+| `c4fd920` | Fix: SkyForgeIntegrator fpvCamera Referenz entfernt |
+| `457ae03` | Feature: Unsichtbarer Ground Plane Collider |
+| `73e4563` | Welle 3: Controller-Konfigurator + HUD + LED/Propeller + Opaque Fix |
+| `5da3db3` | Fix: Drohne renderQueue 3100 (Versuch 2) |
+| `677f9d6` | Fix: DroneOverlay shader (ZTest Always, Queue Overlay) + HUD debug |
+
+### Offene Probleme
+- **Drohne unsichtbar in Third Person View** — DroneOverlay Shader noch nicht bestätigt funktionierend
+  - Root Cause: GaussianComposite.shader Fullscreen-Blit überschreibt normales Rendering
+  - Nächster Versuch: Custom ScriptableRendererFeature die Drohne AfterRenderingTransparents zeichnet
+- **Controller-Setup UI** — funktional aber nicht intuitiv genug
+  - Recherche läuft: Wie machen Liftoff, VelociDrone, DRL das Controller-Setup?
+  - Geplant: Auto-Detect (Stick bewegen → Achse erkannt), Wizard-basiertes Setup
+- **TX16S Batterie leer** — Controller-Test morgen
+
+### Betaflight Konfigurator Verbindung
+- SITL starten: `tools/start_sitl.sh`
+- BF Configurator: **Manual Connection → tcp://127.0.0.1:5761**
+- Receiver Tab: Kanal-Zuordnung live verifizieren
+- Modes Tab: Arm-Switch, Flugmodi einstellen
+
+## Fixes & Learnings (Welle 1+2)
 - MCP: .mcp.json Config muss `uvx --from mcpforunityserver` nutzen, nicht `node`
 - .gitignore: `/assets/` statt `assets/` — sonst werden Unity Assets/ Ordner ausgeschlossen
 - DroneController Properties: `new` keyword reicht nicht — Properties umbenannt zu `Current*` Prefix
 - Input System: "Both" Mode bleibt aktiv (Old für FlyCamera, New für RCInputBridge)
-- DroneController.cs: `rb.linearAcceleration` existiert nicht → manuell berechnet aus Velocity-Differenz
-- Duplicate DroneController in FlightBridge entfernt (Bridge hatte eigenen Placeholder)
-- RCInputBridge: `Gamepad.current` findet TX16S nicht → Fallback auf `Joystick.current` nötig
-- RCInputBridge: `enabled = false` in OnEnable verursacht Config-Verlust → Lazy Init implementiert
-- RCInputBridge: UDP Send Error rate-limited auf alle 5s (Warning statt Error-Spam)
-- Nemotron (Nebius): reasoning=true verursacht leeren content → auf reasoning=false gepatcht in OpenClaw Config
+- DroneController.cs: `rb.linearAcceleration` existiert nicht → manuell berechnet
+- RCInputBridge: `Gamepad.current` findet TX16S nicht → Fallback auf `Joystick.current`
+- RCInputBridge: `enabled = false` in OnEnable verursacht Config-Verlust → Lazy Init
+- RCInputBridge: UDP Send Error rate-limited auf alle 5s
+- Nemotron (Nebius): reasoning=true verursacht leeren content → reasoning=false
+- Unity 6: `FindObjectOfType<T>()` deprecated → `FindFirstObjectByType<T>()`
+- Unity 6: `rb.velocity` deprecated → `rb.linearVelocity`
+- GaussianComposite Shader: `ZTest Always` + `Blend SrcAlpha OneMinusSrcAlpha` = überschreibt alles
+- renderQueue allein reicht NICHT gegen GS Composite (RenderGraph Unsafe Pass)
 
-## Nächste Session — Was als Nächstes drankommt
+## Nächste Schritte (30. März 2026)
 
-### Integration (Welle 2 Abschluss)
-1. [ ] **Drone Prefab in Szene** — DroneSetup.cs ausführen, Prefab erstellen und in Welle1Test platzieren
-2. [ ] **FlightDynamicsBridge verbinden** — BridgeConfig erstellen, Bridge + DroneController verknüpfen
-3. [ ] **BF SITL Arming** — über Configurator (TCP 5761) oder CLI armen, damit Motorwerte kommen
-4. [ ] **Erster Flug** — TX16S Throttle hoch → Quad hebt ab in GS-Szene
-5. [ ] **Achsen-Kalibrierung** — Prüfen ob Roll/Pitch/Yaw/Throttle richtig gemappt sind
+### Phase B — Erster Flug
+1. [ ] TX16S aufladen und anschließen
+2. [ ] SITL starten → BF Configurator verbinden (TCP 5761)
+3. [ ] Receiver Tab: Kanal-Zuordnung verifizieren
+4. [ ] F4 in Unity: Kanäle ggf. umordnen
+5. [ ] Drohne armen + erster Flug testen
 
-### Welle 3 — UI & Usability
-- [ ] Map-Auswahl UI (Runtime Scene Selection mit Metadaten)
-- [ ] Controller-Kalibrierungs-UI (Achsen-Mapping, Invert, Deadzone, Expo, Live-Preview)
+### Drohne sichtbar machen (Prio 1)
+6. [ ] DroneOverlay Shader verifizieren (F3 Third Person)
+7. [ ] Falls nicht: Custom ScriptableRendererFeature (AfterRenderingTransparents)
+8. [ ] Drohnen-Mesh mit eigener Render Queue NACH GS Composite
+
+### Controller-UI Verbesserung
+9. [ ] FPV-Simulator UI Recherche auswerten (Liftoff, VelociDrone, DRL)
+10. [ ] Auto-Detect Wizard: "Bewege Throttle-Stick" → Achse erkannt
+11. [ ] Start-Menü mit Karten-Auswahl, Drohnen-Config, Controller-Setup
+12. [ ] Bessere Menü-Struktur (scrollbar, passt in Bildschirm)
+
+### Welle 4 — Advanced Features
+- [ ] Betaflight OSD Overlay (MSP-Daten)
+- [ ] Replay-System
 - [ ] Kollisions-Proxy aus Splat-Positionen
-- [ ] FPV OSD Overlay
-- [ ] Claude Code + Unity MCP Integration für autonome Editor-Steuerung (Batterie, Flugmodus, Timer)
+- [ ] RL Training Grundlagen (ML-Agents Integration)
 
-### Offene Punkte Welle 1
-- [ ] Rotation/Koordinatensystem-Fix als Standard verifizieren
-- [ ] Performance-Test mit weiteren Maps (bicycle 1.4 GB = härtester Test)
+## Module
 
-## Vision & Feature-Roadmap
+| Modul | Pfad | Status |
+|---|---|---|
+| GS Renderer | Assets/ (Aras-P Plugin) | ✅ Funktioniert |
+| Flight Dynamics Bridge | Assets/Modules/FlightBridge/ | ✅ Code fertig |
+| Drone Model | Assets/Modules/DroneModel/ | ✅ Code fertig |
+| Controller Input | Assets/Modules/ControllerInput/ | ✅ TX16S erkannt |
+| Betaflight SITL | betaflight/ | ✅ Kompiliert + läuft |
+| FlyCamera | Assets/Scripts/FlyCamera.cs | ✅ Funktioniert |
+| CameraManager | Assets/Scripts/CameraManager.cs | ✅ F1/F2/F3/Tab |
+| SkyForgeIntegrator | Assets/Editor/SkyForgeIntegrator.cs | ✅ Ein-Klick Setup |
+| HUD Overlay | Assets/UI/HudOverlay.cs | ✅ Funktioniert |
+| Controller Config | Assets/UI/ControllerConfigPanel.cs | ✅ F4 Panel |
+| LED Indicator | Assets/Modules/DroneModel/LEDThrustIndicator.cs | ✅ Code fertig |
+| Propeller Rotation | Assets/Modules/DroneModel/PropellerRotation.cs | ✅ Code fertig |
+| DroneOverlay Shader | Assets/Shaders/DroneOverlay.shader | ⚠️ Testing |
+| MCP Integration | .mcp.json + Packages/manifest.json | ✅ Plugin installiert |
+| Editor Commands | Assets/Editor/SkyForgeCommandHandler.cs | ✅ 6 Befehle |
+| Batch Runner | tools/unity_batch.sh | ✅ CLI-Steuerung |
+| SITL Tools | tools/start_sitl.sh + stop/test/arm | ✅ Funktioniert |
+| RL Training Engine | Assets/Modules/RLTraining/ | ⏳ Phase 2 |
 
-### UI/UX Konzept
-- **Hauptmenü:** XFLIGHT Corporate Design (dunkel, minimalistisch, blaues Logo animiert)
-- **Map-Auswahl:** Karten-Grid mit Preview-Thumbnails, Splat-Count, Performance-Einschätzung, Typ (Indoor/Outdoor)
-- **Smooth Transition:** Ladescreen mit Transition-Effekt beim Map-Wechsel
+## DevForge v3.3 Modell-Mapping
 
-### Betaflight OSD Overlay
-- MSP-Daten von BF SITL (TCP 5761) extrahieren
-- Originale OSD-Elemente: Batterie, Flugmodus, Höhe, Speed, GPS, Timer, RSSI
-- Semi-transparentes Canvas-Overlay auf FPV-Kamera
-- Betaflight-Font für Authentizität
-- Referenz: Echte FPV-Brille / BF OSD-Tab
+| Task-Typ | Primär | Fallback |
+|---|---|---|
+| Unity C# | Codex (Free) | Qwen3-Coder-480B |
+| BF Integration | Claude Code | Nemotron 120B |
+| GS Shader | Codex (Free) | Qwen3-Coder-480B |
+| RL/ML Code | Codex (Free) | Nemotron 120B |
+| Architektur | Qwen3 235B | DeepSeek V3.2 |
+| Code Review | Qwen3-small 30B | Qwen3-Coder-480B |
+| Implementierung | Qwen3-Coder-480B | Claude Code |
+| Architektur Fallback | DeepSeek V3.2 (nebius) | Nemotron 120B |
 
-### Replay-System
-- Flugaufzeichnung (Position, Rotation, Inputs pro Frame)
-- Wiedergabe aus verschiedenen Kameraperspektiven: Third Person, Chase Cam, Freie Kamera
-- Flugbahn-Visualisierung (leuchtende Linie im 3D-Raum)
-- Zeitlupe / Pause / Zurückspulen
+### DevForge Loop Performance (29. März)
+| Rolle | Modell | Durchschnittl. Zeit |
+|-------|--------|---------------------|
+| Architekt | qwen3 235B | ~30-45s |
+| Implementierer | qwen3-coder 480B | ~45-65s |
+| QA | qwen3-small 30B | ~90-100s |
+| **Gesamt (3 Impl. parallel)** | — | **~3-4 Min** |
 
-### Screen Recording
-- Unity Recorder Extension integrieren
-- Ein-Klick-Aufnahme (Record-Button im UI)
-- Export: MP4 / GIF, direkt zum Teilen
+## Quality Gates
 
-### Sim-to-Real Pipeline (Maggie lernt fliegen)
-- **Trainingsmodus:** Manuell/Acro von Anfang an (KEIN Angle/Horizon Mode)
-- **RL-Training:** PPO (Stable-Baselines3) + ML-Agents, tausende Episoden
-- **Custom GS-Maps:** Rudis Haus + Garten als fotorealistische Trainingsumgebung
-  - Aufnahme: DJI Mini 4 Pro → Tausende Fotos (Haus innen + außen, Garten, alle Zimmer)
-  - Processing: GPU Droplet (RunPod/Lambda) → 3DGS Training → PLY Export
-  - Ziel: Maggie trainiert in der Map ihres eigenen Zuhauses
-- **Deployment:** Trainiertes Policy-Netzwerk als ONNX → TensorRT auf Jetson Orin
-  - Inferenz: ~2-3ms pro Frame
-  - Kamera → Netzwerk → Steuerbefehle → Flight Controller
-  - Live-Video zurück an Maggie (Telepräsenz)
-- **Sim-to-Real Vorteil:** GS-Maps sind fotorealistisch → minimaler Sim-to-Real Gap
+1. **G1 Build:** Unity kompiliert fehlerfrei ✅
+2. **G2 Test:** NUnit Tests grün (Auto) — noch nicht eingerichtet
+3. **G3 Integration:** BF SITL antwortet auf FDM-Packets ⏳ NÄCHSTER SCHRITT
+4. **G4 Render:** GS rendert >30 FPS ohne Artefakte ✅ BESTANDEN
+5. **G5 Fly:** Quad schwebt stabil <0.5m Error ⏳
+6. **G6 RL:** Reward steigt monoton über 1000 Episodes ⏳
 
-### Domain Randomization & Robustheits-Training (KRITISCH für Real-World)
-Fotorealistische Maps allein reichen NICHT — echte Flüge haben Störungen die trainiert werden müssen:
+## Pfade
 
-**Visuelle Störungen (im Training simulieren):**
-- [ ] Motion Blur bei hoher Geschwindigkeit (Shader-basiert, abhängig von Velocity)
-- [ ] Schlechte Lichtverhältnisse: Dunkelheit, Schatten, Gegenlicht, Blendung
-- [ ] Nebel / Staub / Partikel (Volumetric Fog, Particle System)
-- [ ] Kamera-Rauschen / Compression-Artefakte (Post-Processing)
-- [ ] Framerate-Drops / Video-Lag simulieren (Frame-Skip)
-- [ ] Teilweise verdeckte Sicht (Lens Flare, Wassertropfen, Staub auf Linse)
+- **Projekt:** `/Users/rudi/Projects/SkyForge`
+- **Unity Projekt:** `/Users/rudi/Projects/SkyForge/src/SkyForge/`
+- **Betaflight:** `/Users/rudi/Projects/SkyForge/betaflight/`
+- **SITL Binary:** `/Users/rudi/Projects/SkyForge/betaflight/obj/main/betaflight_SITL.elf`
+- **SITL Workdir:** `/Users/rudi/Projects/SkyForge/tools/sitl_workdir/`
+- **DevForge Config:** `/Users/rudi/DevForge/config-v3.3-skyforge.yaml`
+- **Architektur-Plan Welle 2:** `/Users/rudi/Projects/SkyForge/docs/architekt-plan-erster-flug.md`
+- **Architektur-Plan Welle 3:** `/Users/rudi/Projects/SkyForge/docs/architekt-plan-welle3.md`
 
-**Sensorische Unsicherheit:**
-- [ ] IMU-Rauschen / Drift (Gauss-Noise auf Gyro/Accel-Daten)
-- [ ] GPS-Ungenauigkeit / GPS-Ausfall
-- [ ] Barometer-Drift (Höhenmessung unzuverlässig)
-- [ ] Magnetometer-Störungen (in Gebäuden, unter Brücken)
+## Wichtige Links
 
-**Dynamische Umgebung:**
-- [ ] Bewegliche Objekte: Autos, Menschen, Tiere, andere Drohnen
-- [ ] Wind-Böen (zufällige Kräfte auf Rigidbody)
-- [ ] Thermik / Abwind an Gebäudekanten
-- [ ] Veränderte Szene: Autos die woanders parken, offene/geschlossene Türen
-
-**Blind-Flight & Intuitions-Training:**
-- [ ] "Blindflug-Episoden": Kamerabild wird zeitweise schwarz/unscharf → Agent muss aus IMU + letztem bekannten State weiterfliegen
-- [ ] Strategie-Training: Bei Sichtverlust → an Wand/Decke orientieren (wie Rudis Autobahnbrücken-Strategie)
-- [ ] Propriozeptives Fliegen: Agent lernt Drohnen-Attitude aus Motorwerten + IMU, unabhängig von Kamerabild
-- [ ] Reward für "sichere Notlandung" wenn Sicht komplett ausfällt
-
-**Curriculum Learning Stufen:**
-1. Perfekte Bedingungen (klare Sicht, kein Wind, statische Szene)
-2. Leichte Störungen (etwas Wind, leichter Motion Blur)
-3. Mittlere Störungen (Nebel, Schatten, bewegliche Objekte)
-4. Schwere Bedingungen (Staub, Dunkelheit, starker Wind, Blindflug-Phasen)
-5. Real-World Ready (alle Störungen gleichzeitig, zufällig kombiniert)
-
-### TODO: Eigene GS-Map erstellen (Haus + Garten)
-- [ ] DJI Mini 4 Pro: Haus komplett abfliegen (innen + außen), ~2000-5000 Fotos
-- [ ] COLMAP für Structure-from-Motion (Kamerakalibrierung + Sparse Point Cloud)
-- [ ] GPU Droplet (RunPod) mieten für 3DGS Training (~30K Iterationen)
-- [ ] PLY exportieren und in SkyForge importieren
-- [ ] Maggie trainiert in ihrer eigenen Heimat-Map
-- [ ] Anleitung für den kompletten Workflow erstellen (DJI → COLMAP → 3DGS → Unity)
+- [UnityGaussianSplatting](https://github.com/aras-p/UnityGaussianSplatting) — GS Plugin
+- [Betaflight](https://github.com/betaflight/betaflight) — Flight Controller
+- [ML-Agents](https://github.com/Unity-Technologies/ml-agents) — Unity RL Framework
+- [3DGS Official](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/) — GS Paper + Dataset
 
 ## Verfügbare GS-Maps
 
-### mkkellogg (ksplat Format)
-Pfad: /Users/rudi/Projects/SkyForge/assets/mkkellogg_gs/[scene]/[file].ksplat
-
 ### 3DGS Official Dataset (PLY-Format, 30K Iterationen)
-Pfad: /Users/rudi/Projects/SkyForge/assets/3dgs-official/[scene]/point_cloud/iteration_30000/point_cloud.ply
+Pfad: `/Users/rudi/Projects/SkyForge/assets/3dgs-official/[scene]/point_cloud/iteration_30000/point_cloud.ply`
+
 | Szene | Größe | Typ |
 |---|---|---|
 | bicycle | 1.4 GB | Outdoor |
@@ -183,82 +273,21 @@ Pfad: /Users/rudi/Projects/SkyForge/assets/3dgs-official/[scene]/point_cloud/ite
 | bonsai | 294 MB | Indoor |
 | train | 243 MB | Outdoor |
 
-## Module
+## Vision & Feature-Roadmap
 
-| Modul | Pfad | Status |
-|---|---|---|
-| GS Renderer | Assets/ (Aras-P Plugin) | ✅ Funktioniert |
-| Flight Dynamics Bridge | Assets/Modules/FlightBridge/ | ✅ Code fertig, Integration ausstehend |
-| Drone Model | Assets/Modules/DroneModel/ | ✅ Code fertig, Prefab ausstehend |
-| Controller Input | Assets/Modules/ControllerInput/ | ✅ TX16S erkannt, RC→BF SITL funktioniert |
-| Betaflight SITL | betaflight/ | ✅ Kompiliert + läuft |
-| FlyCamera | Assets/Scripts/FlyCamera.cs | ✅ Funktioniert |
-| RL Training Engine | Assets/Modules/RLTraining/ | ⏳ Phase 2 |
-| MCP Integration | .mcp.json + Packages/manifest.json | ✅ Plugin installiert, Claude Code connected |
-| Editor Commands | Assets/Editor/SkyForgeCommandHandler.cs | ✅ 6 Befehle (HealthCheck, Scenes, Build, Prefabs) |
-| Batch Runner | tools/unity_batch.sh | ✅ Headless Unity-Steuerung per CLI |
+### UI/UX Konzept
+- **Hauptmenü:** XFLIGHT Corporate Design (dunkel, minimalistisch, blaues Logo animiert)
+- **Map-Auswahl:** Karten-Grid mit Preview-Thumbnails, Splat-Count, Performance-Einschätzung
+- **Controller-Setup:** Wizard-basiert (Stick bewegen → Auto-Detect) + Advanced Manual Mode
+- **Start-Flow:** Hauptmenü → Controller-Setup → Map-Auswahl → Flug
 
-## DevForge v3.3 Modell-Mapping
+### Betaflight OSD Overlay
+- MSP-Daten von BF SITL (TCP 5761) extrahieren
+- Originale OSD-Elemente: Batterie, Flugmodus, Höhe, Speed, Timer, RSSI
+- Semi-transparentes OnGUI-Overlay auf FPV-Kamera
+- Betaflight-Font für Authentizität
 
-| Task-Typ | Primär | Fallback |
-|---|---|---|
-| Unity C# | Codex (Free) | Qwen3-Coder-480B |
-| BF Integration | Claude Code | Nemotron 120B |
-| GS Shader | Codex (Free) | Qwen3-Coder-480B |
-| RL/ML Code | Codex (Free) | Nemotron 120B |
-| Architektur | Nemotron 120B (reasoning=false!) | DeepSeek-R1 |
-| Code Review | Qwen3-Coder-480B | Claude Code |
-| Architektur Fallback | DeepSeek V3.2 (nebius) | Nemotron 120B |
-
-### Kostenvergleich (geschätzt, pro 1M Token)
-| Modell | Input | Output | Stärke |
-|--------|-------|--------|--------|
-| Qwen3-small | ~$0.15 | ~$0.25 | Chat, einfache Tasks |
-| DeepSeek V3.2 | ~$0.80 | ~$1.20 | Reasoning, Tool-Use, Mathe |
-| Nemotron Super | ~$3.00 | ~$5.00 | 1M Kontext, Multi-Agent |
-| Codex | kostenlos | kostenlos | Unity C#, Code-Generierung |
-
-## Selbstoptimierung & Autonome Entwicklung
-
-### Maggies Autonomie-Level
-Maggie kann eigenständig an SkyForge arbeiten:
-- **Issue → Implementierung → PR** über DevForge-Pipeline
-- **Rollenverteilung:** Architekt (Nemotron/DeepSeek V3.2) → Implementierer (Codex/Claude Code) → QA (Qwen3)
-- **Claude Code + Unity MCP:** Direkte Unity-Editor-Steuerung über Model Context Protocol (Recherche läuft)
-
-### Grenzen (immer Rudi fragen!)
-- Änderungen an Flugsteuerungs-Logik (FlightDynamicsBridge, DroneController)
-- Releases und Deployments
-- Budget-Überschreitungen
-- Ambige Anforderungen / UX-Design-Entscheidungen
-
-### Langfrist-Vision: Capability Evolver
-- GEP-Protokoll (Genome Evolution Protocol) für Self-Learning
-- Automatische Fehlererkennung → strukturierte Verbesserungsvorschläge
-- Capsules: Bewiesene Lösungen werden wiederverwendbar gespeichert
-
-## Quality Gates
-
-1. **G1 Build:** Unity kompiliert fehlerfrei ✅
-2. **G2 Test:** NUnit Tests grün (Auto)
-3. **G3 Integration:** BF SITL antwortet auf FDM-Packets (Semi-Auto) — NÄCHSTER SCHRITT
-4. **G4 Render:** GS rendert >30 FPS ohne Artefakte ✅ BESTANDEN
-5. **G5 Fly:** Quad schwebt stabil <0.5m Error (Auto)
-6. **G6 RL:** Reward steigt monoton über 1000 Episodes (Auto)
-
-## Pfade
-
-- **Projekt:** `/Users/rudi/Projects/SkyForge`
-- **Unity Projekt:** `/Users/rudi/Projects/SkyForge/src/SkyForge/`
-- **Betaflight:** `/Users/rudi/Projects/SkyForge/betaflight/`
-- **SITL Binary:** `/Users/rudi/Projects/SkyForge/betaflight/obj/main/betaflight_SITL.elf`
-- **SITL Workdir:** `/Users/rudi/Projects/SkyForge/tools/sitl_workdir/`
-- **DevForge Config:** `/Users/rudi/DevForge/config-v3.3-skyforge.yaml`
-- **Architektur-Plan:** `/Users/rudi/.openclaw/workspace/docs/2025-03-27-drone-sim-architektur-plan.md`
-
-## Wichtige Links
-
-- [UnityGaussianSplatting](https://github.com/aras-p/UnityGaussianSplatting) — GS Plugin
-- [Betaflight](https://github.com/betaflight/betaflight) — Flight Controller
-- [ML-Agents](https://github.com/Unity-Technologies/ml-agents) — Unity RL Framework
-- [3DGS Official](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/) — GS Paper + Dataset
+### Sim-to-Real Pipeline (Maggie lernt fliegen)
+- **RL-Training:** PPO (Stable-Baselines3) + ML-Agents
+- **Custom GS-Maps:** Rudis Haus + Garten als Trainingsumgebung
+- **Deployment:** ONNX → TensorRT auf Jetson Orin
