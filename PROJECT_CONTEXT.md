@@ -208,6 +208,38 @@ Kompletter DevForge-Loop: Architekt (qwen3 235B, 30s) → Implementierer A+B par
 - [ ] Kollisions-Proxy aus Splat-Positionen
 - [ ] RL Training Grundlagen (ML-Agents Integration)
 
+## Neue Commits (29.03. Abend + Nacht)
+- f4aaa17: fix: compile errors (SerializedObject pattern, deprecated API, InputSystem buffer)
+- eaf5901: feat: UI Toolkit menu system v1 (MainMenu, ControllerSetup, MapSelection, About)
+- 81fd2f9: feat: DroneOverlayFeature v1
+- d523e54: Welle 4 UI Toolkit (StartScreen, Controller-Wizard, HUD)
+- abbfa23: Fix DroneOverlayFeature RenderGraph
+- f3b374d: Betaflight OSD Overlay (MSPClient, OSDData, Renderer)
+- fbb6518: UI Toolkit Refactoring (StartScreen, ControllerSetup, HUD, UIManager)
+- 69279be: betaflight submodule als 'beta' eingebunden
+- 68f22a1: Kernkomponenten reimplementiert (DroneController, FlightDynamicsBridge, RCInputBridge)
+
+## SITL Status
+- Binary jetzt unter beta/obj/main/betaflight_SITL.elf (nicht mehr betaflight/)
+- BF Modes: ARM=AUX2 (rechter DJI Kippschalter), AirMode=AUX1-M, Angle=AUX1-N
+- API Version 1.48, BF Configurator 10.10 verbindet sich
+
+## UI-System
+- 2 parallele Versionen erstellt: Assets/UI/Scenes/ und Assets/UI/Toolkit/
+- Noch NICHT in aktive Szene eingebunden (UIDocument + UXML muss zugewiesen werden)
+- Konsolidierung nötig
+
+## DroneOverlayFeature
+- Zum PC_Renderer.asset manuell hinzugefügt
+- Noch nicht visuell verifiziert
+
+## Offene Punkte für 30.03.
+- UI in Szene einbinden
+- Drohne sichtbar verifizieren
+- Erster Flugtest
+- Physik-Simulation: Hohe Update-Rate für Flight Controller (FixedUpdate entkoppelt von Framerate)
+- Redundante UI-Dateien konsolidieren
+
 ## Module
 
 | Modul | Pfad | Status |
