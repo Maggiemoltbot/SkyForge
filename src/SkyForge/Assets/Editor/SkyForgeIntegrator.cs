@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using System.IO;
 
 /// <summary>
@@ -66,6 +67,10 @@ public class SkyForgeIntegrator
 
         Debug.Log("[SkyForge] Setup complete! Drone at (0, 2, 0) with Bridge + RC Input configured.");
         Debug.Log("[SkyForge] Next: Start SITL with tools/start_sitl.sh, then press Play.");
+        Debug.Log("[SkyForge] IMPORTANT: Save the scene (Ctrl+S) to persist the setup!");
+
+        // Mark scene as dirty so user gets prompted to save
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
     }
 
     /// <summary>

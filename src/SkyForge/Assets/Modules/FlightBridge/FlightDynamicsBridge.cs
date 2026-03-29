@@ -18,6 +18,7 @@ public class FlightDynamicsBridge : MonoBehaviour
     [Header("Status")]
     [SerializeField] private bool isConnected = false;
     [SerializeField] private int fdmPacketsSent = 0;
+    private float lastErrorLogTime = -999f;
     [SerializeField] private int pwmPacketsReceived = 0;
     
     // UDP clients
@@ -149,7 +150,12 @@ public class FlightDynamicsBridge : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error sending FDM packet: {e.Message}");
+            // Rate-limit error logging to once every 5 seconds
+            if (Time.time - lastErrorLogTime > 5f)
+            {
+                Debug.LogWarning($"[SkyForge] FDM send failed (SITL running?): {e.Message}");
+                lastErrorLogTime = Time.time;
+            }
         }
     }
     

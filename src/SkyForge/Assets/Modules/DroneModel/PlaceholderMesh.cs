@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[ExecuteAlways]
 public class PlaceholderMesh : MonoBehaviour
 {
     [Header("Drone Dimensions")]
@@ -8,14 +9,27 @@ public class PlaceholderMesh : MonoBehaviour
     [SerializeField] private float armHeight = 0.005f;
     [SerializeField] private float centerSize = 0.03f;
     [SerializeField] private float motorSphereSize = 0.01f;
+    private bool isBuilt = false;
     
     void Start()
     {
-        CreateQuadFrame();
+        if (!isBuilt) CreateQuadFrame();
+    }
+
+    void OnEnable()
+    {
+        // Also create in Editor mode
+        if (transform.childCount == 0)
+        {
+            CreateQuadFrame();
+        }
     }
     
     void CreateQuadFrame()
     {
+        // Prevent duplicate creation
+        if (transform.childCount > 0) return;
+        isBuilt = true;
         // Create center cube
         CreateCenterCube();
         
