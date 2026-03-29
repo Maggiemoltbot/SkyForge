@@ -1,0 +1,24 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+  <ui:VisualElement name="map-selection-container" class="panel">
+    <!-- Header -->
+    <ui:Label name="title-label" text="MAP SELECTION" class="header-title" />
+    
+    <!-- Search/Filter Bar -->
+    <ui:TextField name="search-field" placeholder="Search maps..." style="margin-bottom: 20px;" />
+    
+    <!-- Map Grid -->
+    <ui:ScrollView name="map-scroll-view" style="height: 500px;">
+      <ui:VisualElement name="map-grid" class="grid-container">
+        <!-- Map cards will be added dynamically -->
+      </ui:VisualElement>
+    </ui:ScrollView>
+    
+    <!-- Status Label -->
+    <ui:Label name="status-label" text="Loading maps..." class="label-secondary" style="text-align: center; margin-top: 10px;" />
+    
+    <!-- Navigation Button -->
+    <ui:VisualElement name="navigation-buttons" style="flex-direction: row; justify-content: center; margin-top: 20px;">
+      <ui:Button name="back-button" text="BACK TO MAIN MENU" class="button" style="width: 200px;" />
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

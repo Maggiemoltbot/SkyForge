@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+  <ui:VisualElement name="main-menu-container" class="panel">
+    <!-- Logo Section -->
+    <ui:VisualElement name="logo-section" style="align-items: center; margin-bottom: 40px;">
+      <ui:Label name="title-label" text="SKYFORGE" class="header-title" />
+      <ui:Label name="subtitle-label" text="FPV Drone Simulator" class="header-subtitle" />
+    </ui:VisualElement>
+    
+    <!-- Menu Buttons -->
+    <ui:VisualElement name="menu-buttons" style="flex-direction: column; align-items: center;">
+      <ui:Button name="fly-button" text="FLY" class="button cta" style="width: 200px; margin-bottom: 15px;" />
+      <ui:Button name="controller-button" text="CONTROLLER SETUP" class="button" style="width: 200px; margin-bottom: 15px;" />
+      <ui:Button name="map-select-button" text="MAP SELECT" class="button" style="width: 200px; margin-bottom: 15px;" />
+      <ui:Button name="settings-button" text="SETTINGS" class="button" style="width: 200px; margin-bottom: 15px;" />
+      <ui:Button name="about-button" text="ABOUT" class="button" style="width: 200px; margin-bottom: 15px;" />
+      <ui:Button name="quit-button" text="QUIT" class="button" style="width: 200px;" />
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

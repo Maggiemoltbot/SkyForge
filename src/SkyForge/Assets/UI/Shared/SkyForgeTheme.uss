@@ -1,0 +1,158 @@
+/* SkyForge Theme - XFLIGHT Corporate Identity */
+/* Based on Apple macOS Human Interface Guidelines */
+
+/* Color Palette as CSS Variables */
+:root {
+  /* Background Colors */
+  --bg-primary: #0A0A0F;
+  --bg-secondary: #111118;
+  --bg-card: #16161F;
+  
+  /* Text Colors */
+  --text-primary: #FFFFFF;
+  --text-secondary: #9CA3AF;
+  
+  /* Accent Colors */
+  --accent-cyan: #00D4FF;
+  --accent-blue: #3B82F6;
+  --accent-violet: #8B5CF6;
+  --accent-orange: #FF6B00;
+  --accent-orange-light: #FF8C3A;
+  
+  /* Border Radius (Apple HIG) */
+  --border-radius: 10px;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Typography */
+  --font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-xxl: 24px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Base Styles */
+* {
+  font-family: var(--font-family);
+}
+
+/* Panel Styles */
+.panel {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin: var(--spacing-sm);
+}
+
+/* Button Styles */
+.button {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-md);
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  border: 1px solid var(--accent-cyan);
+  background-color: #181821;
+}
+
+.button:active {
+  background-color: #1A1A24;
+}
+
+.button.cta {
+  background: linear-gradient(to bottom, var(--accent-orange), #E65100);
+  color: white;
+  border: none;
+}
+
+.button.cta:hover {
+  background: linear-gradient(to bottom, var(--accent-orange-light), #FF7B2A);
+  border: none;
+}
+
+/* Label Styles */
+.label-primary {
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+}
+
+.label-secondary {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Header Styles */
+.header-title {
+  color: var(--text-primary);
+  font-size: var(--font-size-xxl);
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.header-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Slider Styles */
+.slider-container {
+  margin: var(--spacing-md) 0;
+}
+
+.slider-label {
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.slider-value {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-left: var(--spacing-sm);
+}
+
+/* Grid Layout */
+.grid-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.grid-item {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin: var(--spacing-sm);
+  transition: all 0.2s ease;
+}
+
+.grid-item:hover {
+  border: 1px solid var(--accent-cyan);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.grid-item.selected {
+  border: 2px solid var(--accent-orange);
+}
