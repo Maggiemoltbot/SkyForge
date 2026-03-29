@@ -1,5 +1,5 @@
 # SkyForge — PROJECT_CONTEXT.md
-**Aktualisiert:** 28. März 2026, 23:45 | **DevForge:** v3.3
+**Aktualisiert:** 29. März 2026, 10:35 | **DevForge:** v3.3
 
 ## Projekt-Übersicht
 SkyForge ist der XFLIGHT-eigene Drohnensimulator (macOS M4, Unity 6 LTS). Er kombiniert Betaflight SITL (echte Firmware), Gaussian Splatting (fotorealistische 3D-Welten) und Reinforcement Learning (Maggie lernt fliegen). Zwei Modi: Rudi fliegt manuell (FPV-Training), Maggie fliegt autonom (KI-gesteuert).
@@ -68,7 +68,8 @@ SkyForge ist der XFLIGHT-eigene Drohnensimulator (macOS M4, Unity 6 LTS). Er kom
 - [ ] Map-Auswahl UI (Runtime Scene Selection mit Metadaten)
 - [ ] Controller-Kalibrierungs-UI (Achsen-Mapping, Invert, Deadzone, Expo, Live-Preview)
 - [ ] Kollisions-Proxy aus Splat-Positionen
-- [ ] FPV OSD Overlay (Batterie, Flugmodus, Timer)
+- [ ] FPV OSD Overlay
+- [ ] Claude Code + Unity MCP Integration für autonome Editor-Steuerung (Batterie, Flugmodus, Timer)
 
 ### Offene Punkte Welle 1
 - [ ] Rotation/Koordinatensystem-Fix als Standard verifizieren
@@ -201,6 +202,34 @@ Pfad: /Users/rudi/Projects/SkyForge/assets/3dgs-official/[scene]/point_cloud/ite
 | RL/ML Code | Codex (Free) | Nemotron 120B |
 | Architektur | Nemotron 120B (reasoning=false!) | DeepSeek-R1 |
 | Code Review | Qwen3-Coder-480B | Claude Code |
+| Architektur Fallback | DeepSeek V3.2 (nebius) | Nemotron 120B |
+
+### Kostenvergleich (geschätzt, pro 1M Token)
+| Modell | Input | Output | Stärke |
+|--------|-------|--------|--------|
+| Qwen3-small | ~$0.15 | ~$0.25 | Chat, einfache Tasks |
+| DeepSeek V3.2 | ~$0.80 | ~$1.20 | Reasoning, Tool-Use, Mathe |
+| Nemotron Super | ~$3.00 | ~$5.00 | 1M Kontext, Multi-Agent |
+| Codex | kostenlos | kostenlos | Unity C#, Code-Generierung |
+
+## Selbstoptimierung & Autonome Entwicklung
+
+### Maggies Autonomie-Level
+Maggie kann eigenständig an SkyForge arbeiten:
+- **Issue → Implementierung → PR** über DevForge-Pipeline
+- **Rollenverteilung:** Architekt (Nemotron/DeepSeek V3.2) → Implementierer (Codex/Claude Code) → QA (Qwen3)
+- **Claude Code + Unity MCP:** Direkte Unity-Editor-Steuerung über Model Context Protocol (Recherche läuft)
+
+### Grenzen (immer Rudi fragen!)
+- Änderungen an Flugsteuerungs-Logik (FlightDynamicsBridge, DroneController)
+- Releases und Deployments
+- Budget-Überschreitungen
+- Ambige Anforderungen / UX-Design-Entscheidungen
+
+### Langfrist-Vision: Capability Evolver
+- GEP-Protokoll (Genome Evolution Protocol) für Self-Learning
+- Automatische Fehlererkennung → strukturierte Verbesserungsvorschläge
+- Capsules: Bewiesene Lösungen werden wiederverwendbar gespeichert
 
 ## Quality Gates
 
