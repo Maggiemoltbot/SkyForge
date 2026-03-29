@@ -15,5 +15,18 @@ Thumbs.db
 .vs/
 *.csproj
 *.sln
-.idea/assets/
-Assets/StreamingAssets/GaussianSplats/
+.idea/
+
+# Large Assets (GS Maps, PLY, KSPLAT) — too large for GitHub
+assets/
+src/SkyForge/Assets/StreamingAssets/GaussianSplats/
+*.ply
+*.ksplat
+
+# Betaflight build artifacts
+betaflight/obj/
+betaflight/make/
+
+# Unity generated
+src/SkyForge/Assets/Plugins/UnityGaussianSplatting
+betaflight/
