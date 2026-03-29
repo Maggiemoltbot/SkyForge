@@ -59,7 +59,7 @@ public class SkyForgeIntegrator
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            mainCamera = GameObject.FindObjectOfType<Camera>();
+            mainCamera = Object.FindAnyObjectByType<Camera>();
         }
         
         // Try to find the FPV camera on the drone
@@ -70,7 +70,7 @@ public class SkyForgeIntegrator
             fpvCamera = fpvCameraComponent.GetComponent<Camera>();
         }
         
-        // Set the camera manager references
+        // Set camera manager references (public fields)
         cameraManager.mainCamera = mainCamera;
         cameraManager.fpvCamera = fpvCamera;
         cameraManager.droneTransform = drone.transform;

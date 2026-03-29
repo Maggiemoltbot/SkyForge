@@ -4,9 +4,9 @@ public class CameraManager : MonoBehaviour
 {
     public enum CameraMode { FreeCam, FPV, ThirdPerson }
     
-    [SerializeField] private Camera mainCamera;      // Main Camera mit FlyCamera
-    [SerializeField] private Camera fpvCamera;        // FPV auf der Drohne
-    [SerializeField] private Transform droneTransform; // Drone GameObject
+    public Camera mainCamera;      // Main Camera mit FlyCamera
+    public Camera fpvCamera;        // FPV auf der Drohne
+    public Transform droneTransform; // Drone GameObject
     
     [Header("Third Person")]
     [SerializeField] private Vector3 chaseOffset = new Vector3(0, 2, -5);
