@@ -169,6 +169,19 @@ Kompletter DevForge-Loop: Architekt (qwen3 235B, 30s) → Implementierer A+B par
 - SortingSettings API-Fix für Unity 6
 - Commit: `abbfa23`
 
+### Betaflight OSD Overlay ✅
+- MSPClient.cs: TCP-Verbindung zu SITL (Port 5761), MSP v1 Protokoll, Auto-Reconnect
+- OSDData.cs: Parser für Batterie, Höhe, Flugmodus, Armed-Status, RSSI, Timer
+- OSDOverlay (UXML/USS): Betaflight-Stil Overlay, Monospace, semi-transparent
+- Toggle mit F5, nur im FPV-Modus (F2) sichtbar
+- Commit: `f3b374d`
+
+### FPV-Simulator UI-Recherche ✅
+- Analyse von Liftoff, VelociDrone, DRL Simulator, Uncrashed
+- Best Practices: Controller-Setup, Hauptmenü, Map-Auswahl, HUD
+- Konkrete Empfehlungen für SkyForge UI
+- Report: `docs/2026-03-30-fpv-sim-ui-recherche.md`
+
 ## Nächste Schritte (30. März 2026)
 
 ### Phase B — Erster Flug
@@ -184,13 +197,13 @@ Kompletter DevForge-Loop: Architekt (qwen3 235B, 30s) → Implementierer A+B par
 8. [ ] Falls nicht sichtbar: renderPassEvent anpassen oder GS Feature Injection Order prüfen
 
 ### Controller-UI Verbesserung
-9. [ ] FPV-Simulator UI Recherche auswerten (Liftoff, VelociDrone, DRL)
-10. [ ] Auto-Detect Wizard: "Bewege Throttle-Stick" → Achse erkannt
-11. [ ] Start-Menü mit Karten-Auswahl, Drohnen-Config, Controller-Setup
-12. [ ] Bessere Menü-Struktur (scrollbar, passt in Bildschirm)
+9. [x] FPV-Simulator UI Recherche auswerten (Liftoff, VelociDrone, DRL) ✅
+10. [x] Auto-Detect Wizard: "Bewege Throttle-Stick" → Achse erkannt ✅ (Welle 4)
+11. [x] Start-Menü mit Karten-Auswahl, Drohnen-Config, Controller-Setup ✅ (Welle 4)
+12. [ ] Bessere Menü-Struktur (scrollbar, passt in Bildschirm) — Verbesserungen aus UI-Recherche anwenden
 
 ### Welle 4 — Advanced Features
-- [ ] Betaflight OSD Overlay (MSP-Daten)
+- [x] Betaflight OSD Overlay (MSP-Daten) ✅
 - [ ] Replay-System
 - [ ] Kollisions-Proxy aus Splat-Positionen
 - [ ] RL Training Grundlagen (ML-Agents Integration)
@@ -211,7 +224,8 @@ Kompletter DevForge-Loop: Architekt (qwen3 235B, 30s) → Implementierer A+B par
 | Controller Config | Assets/UI/ControllerConfigPanel.cs | ✅ F4 Panel |
 | LED Indicator | Assets/Modules/DroneModel/LEDThrustIndicator.cs | ✅ Code fertig |
 | Propeller Rotation | Assets/Modules/DroneModel/PropellerRotation.cs | ✅ Code fertig |
-| DroneOverlay Shader | Assets/Shaders/DroneOverlay.shader | ⚠️ Testing |
+| OSD Module | Assets/Modules/OSD/ | ✅ Code fertig |
+| DroneOverlay Shader | Assets/Shaders/DroneOverlay.shader | ✅ Implementiert |
 | MCP Integration | .mcp.json + Packages/manifest.json | ✅ Plugin installiert |
 | Editor Commands | Assets/Editor/SkyForgeCommandHandler.cs | ✅ 6 Befehle |
 | Batch Runner | tools/unity_batch.sh | ✅ CLI-Steuerung |
