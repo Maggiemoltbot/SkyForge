@@ -1,0 +1,81 @@
+.container {
+  background-color: #1a1a2e;
+  color: white;
+  font-family: "Arial", sans-serif;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.logo-container {
+  margin-bottom: 40px;
+}
+
+.logo {
+  font-size: 64px;
+  font-weight: bold;
+  color: #0066ff;
+  text-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.maps-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin: 30px 0;
+  max-width: 80%;
+}
+
+.map-button {
+  height: 80px;
+  background-color: #16213e;
+  color: #ffffff;
+  border: 1px solid #0066ff;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.map-button:hover {
+  background-color: #0f1a2c;
+  border-color: #0066ff;
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+}
+
+.map-button:active {
+  transform: scale(0.98);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.action-button {
+  width: 140px;
+  height: 50px;
+  background-color: #16213e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: #0066ff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 102, 255, 0.4);
+}
+
+.action-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 102, 255, 0.3);
+}

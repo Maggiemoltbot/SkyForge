@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="controller-setup" class="container">
+    
+    <!-- Wizard Header -->
+    <ui:Label name="wizard-title" text="Controller Setup Wizard" class="wizard-title" />
+    <ui:Label name="wizard-subtitle" text="Step 1 of 4: Throttle" class="wizard-subtitle" />
+    
+    <!-- Instructions -->
+    <ui:VisualElement name="instructions" class="instructions">
+      <ui:Label name="instruction-text" text="Move your Throttle stick up and down to calibrate" class="instruction-text" />
+    </ui:VisualElement>
+    
+    <!-- Progress Steps -->
+    <ui:VisualElement name="progress-steps" class="progress-steps">
+      <ui:VisualElement class="step">
+        <ui:Label text="1" class="step-number active" />
+        <ui:Label text="Throttle" class="step-label active" />
+      </ui:VisualElement>
+      <ui:VisualElement class="step-divider"></ui:VisualElement>
+      <ui:VisualElement class="step">
+        <ui:Label text="2" class="step-number" />
+        <ui:Label text="Yaw" class="step-label" />
+      </ui:VisualElement>
+      <ui:VisualElement class="step-divider"></ui:VisualElement>
+      <ui:VisualElement class="step">
+        <ui:Label text="3" class="step-number" />
+        <ui:Label text="Pitch" class="step-label" />
+      </ui:VisualElement>
+      <ui:VisualElement class="step-divider"></ui:VisualElement>
+      <ui:VisualElement class="step">
+        <ui:Label text="4" class="step-number" />
+        <ui:Label text="Roll" class="step-label" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+    
+    <!-- Live Preview -->
+    <ui:VisualElement name="live-preview" class="live-preview">
+      <ui:Label text="Live Axis Preview" class="preview-title" />
+      <ui:VisualElement name="throttle-bar" class="axis-bar">
+        <ui:VisualElement name="throttle-fill" class="axis-fill" style="width: 50%" />
+        <ui:Label name="throttle-value" text="50%" class="axis-value" />
+      </ui:VisualElement>
+      <ui:VisualElement name="yaw-bar" class="axis-bar hidden">
+        <ui:VisualElement name="yaw-fill" class="axis-fill" style="width: 50%" />
+        <ui:Label name="yaw-value" text="50%" class="axis-value" />
+      </ui:VisualElement>
+      <ui:VisualElement name="pitch-bar" class="axis-bar hidden">
+        <ui:VisualElement name="pitch-fill" class="axis-fill" style="width: 50%" />
+        <ui:Label name="pitch-value" text="50%" class="axis-value" />
+      </ui:VisualElement>
+      <ui:VisualElement name="roll-bar" class="axis-bar hidden">
+        <ui:VisualElement name="roll-fill" class="axis-fill" style="width: 50%" />
+        <ui:Label name="roll-value" text="50%" class="axis-value" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+    
+    <!-- Axis Settings -->
+    <ui:VisualElement name="axis-settings" class="axis-settings">
+      
+      <!-- Throttle -->
+      <ui:VisualElement name="throttle-settings" class="axis-panel">
+        <ui:Label text="Throttle Settings" class="axis-title" />
+        
+        <ui:VisualElement class="setting-row">
+          <ui:Label text="Invert" class="setting-label" />
+          <ui:Toggle name="throttle-invert" class="setting-toggle" />
+        </ui:VisualElement>
+        
+        <ui:VisualElement class="setting-row">
+          <ui:Label text="Deadzone" class="setting-label" />
+          <ui:Slider name="throttle-deadzone" value="0.1" lowValue="0" highValue="0.5" showInputField="true" class="setting-slider" />
+          <ui:Label name="throttle-deadzone-value" text="0.10" class="slider-value" />
+        </ui:VisualElement>
+        
+      </ui:VisualElement>
+      
+      <!-- Yaw -->
+      <ui:VisualElement name="yaw-settings" class="axis-panel hidden">
+        <ui:Label text="Yaw Settings" class="axis-title" />
+        
+        <ui:VisualElement class="setting-row">
+          <ui:Label text="Invert" class="setting-label" />
+          <ui:Toggle name="yaw-invert" class="setting-toggle" />
+        </ui:VisualElement>
+        
+        <ui:VisualElement class="setting-row">
+          <ui:Label text="Deadzone" class="setting-label" />
+          <ui:Slider name="yaw-deadzone" value="0.1" lowValue="0" highValue="0.5" showInputField="true" class="setting-slider" />
+          <ui:Label name="yaw-deadzone-value" text="0.10" class="slider-value" />
+        </ui:VisualElement>
+        
+      </ui:VisualElement>
+      
+      <!-- Pitch -->
+      <ui:VisualElement name="pitch-settings" class="axis-panel hidden">
+        <ui:Label text="Pitch Settings" class="axis-title" />
+        
+        <ui:VisualElement class="setting-row">
+          <ui:Label text="Invert" class="setting-label" />
+          <ui:Toggle name="pitch-invert" class="setting-toggle" />
+        </ui:VisualElement>
+        
+        <ui:VisualElement class="setting-row">
+          <ui:Label text="Deadzone" class="setting-label" />
+          <ui:Slider name="pitch-deadzone" value="0.1" lowValue="0" highValue="0.5" showInputField="true" class="setting-slider" />
+          <ui:Label name="pitch-deadzone-value" text="0.10" class="slider-value" />
+        </ui:VisualElement>
+        
+      </ui:VisualElement>
+      
+      <!-- Roll -->
+      <ui:VisualElement name="roll-settings" class="axis-panel hidden">
+        <ui:Label text="Roll Settings" class="axis-title" />
+        
+        <ui:VisualElement class="setting-row">
+          <ui:Label text="Invert" class="setting-label" />
+          <ui:Toggle name="roll-invert" class="setting-toggle" />
+        </ui:VisualElement>
+        
+        <ui:VisualElement class="setting-row">
+          <ui:Label text="Deadzone" class="setting-label" />
+          <ui:Slider name="roll-deadzone" value="0.1" lowValue="0" highValue="0.5" showInputField="true" class="setting-slider" />
+          <ui:Label name="roll-deadzone-value" text="0.10" class="slider-value" />
+        </ui:VisualElement>
+        
+      </ui:VisualElement>
+      
+    </ui:VisualElement>
+    
+    <!-- Navigation Buttons -->
+    <ui:VisualElement name="navigation" class="navigation">
+      <ui:Button name="prev-button" text="Previous" class="nav-button" />
+      <ui:Button name="test-button" text="Test" class="test-button" />
+      <ui:Button name="next-button" text="Next" class="nav-button" />
+    </ui:VisualElement>
+    
+  </ui:VisualElement>
+</ui:UXML

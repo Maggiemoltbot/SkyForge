@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="start-screen" class="container">
+    
+    <!-- Logo -->
+    <ui:VisualElement name="logo-container" class="logo-container">
+      <ui:Label name="logo" text="XFLIGHT" class="logo" />
+    </ui:VisualElement>
+    
+    <!-- Maps Grid -->
+    <ui:VisualElement name="maps-grid" class="maps-grid">
+      <ui:Button text="Bicycle" class="map-button" />
+      <ui:Button text="Garden" class="map-button" />
+      <ui:Button text="Stump" class="map-button" />
+      <ui:Button text="Treehill" class="map-button" />
+      <ui:Button text="Flowers" class="map-button" />
+      <ui:Button text="DrJohnson" class="map-button" />
+      <ui:Button text="Truck" class="map-button" />
+      <ui:Button text="Playroom" class="map-button" />
+      <ui:Button text="Kitchen" class="map-button" />
+      <ui:Button text="Room" class="map-button" />
+      <ui:Button text="Counter" class="map-button" />
+      <ui:Button text="Bonsai" class="map-button" />
+      <ui:Button text="Train" class="map-button" />
+    </ui:VisualElement>
+    
+    <!-- Action Buttons -->
+    <ui:VisualElement name="action-buttons" class="action-buttons">
+      <ui:Button name="fly-button" text="Fly" class="action-button" />
+      <ui:Button name="controller-setup-button" text="Controller Setup" class="action-button" />
+      <ui:Button name="settings-button" text="Settings" class="action-button" />
+      <ui:Button name="quit-button" text="Quit" class="action-button" />
+    </ui:VisualElement>
+    
+  </ui:VisualElement>
+</ui:UXML>

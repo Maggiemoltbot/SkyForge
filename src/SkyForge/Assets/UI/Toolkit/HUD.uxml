@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="hud" class="hud-container">
+    
+    <!-- Primary Flight Data -->
+    <ui:VisualElement name="flight-data" class="flight-data">
+      <ui:Label name="altitude-label" text="ALT: 0.0m" class="data-label" />
+      <ui:Label name="speed-label" text="SPD: 0.0 m/s" class="data-label" />
+      <ui:Label name="camera-mode-label" text="MODE: Free" class="data-label" />
+      <ui:Label name="armed-label" text="DISARMED" class="status-label" />
+      <ui:Label name="battery-label" text="BAT: 100%" class="data-label" />
+    </ui:VisualElement>
+    
+    <!-- SITL Connection Status -->
+    <ui:VisualElement name="connection-status" class="connection-status">
+      <ui:Label name="sitl-status" text="SITL: DISCONNECTED" class="status-label" />
+    </ui:VisualElement>
+    
+  </ui:VisualElement>
+</ui:UXML

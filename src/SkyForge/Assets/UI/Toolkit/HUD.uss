@@ -1,0 +1,46 @@
+.hud-container {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  padding: 10px;
+  color: green;
+}
+
+.flight-data, .connection-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.data-label {
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #00ff00;
+}
+
+.status-label {
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+
+.status-label[text*="ARMED"] {
+  color: #ff0000;
+}
+
+.status-label[text*="CONNECTED"] {
+  color: #00ff00;
+}
+
+.status-label[text*="DISARMED"],
+.status-label[text*="DISCONNECTED"] {
+  color: #00ff00;
+}
+
+.status-label[text*="SITL"] {
+  font-size: 14px;
+  color: #00ff00;
+}
