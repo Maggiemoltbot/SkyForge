@@ -351,3 +351,30 @@ Pfad: `/Users/rudi/Projects/SkyForge/assets/3dgs-official/[scene]/point_cloud/it
 - **RL-Training:** PPO (Stable-Baselines3) + ML-Agents
 - **Custom GS-Maps:** Rudis Haus + Garten als Trainingsumgebung
 - **Deployment:** ONNX → TensorRT auf Jetson Orin
+
+### Neue Features (30.03. Nacht):
+1. **Hochfrequente Physik-Simulation (Commit cf25319)**
+   - PhysicsManager.cs: FixedUpdate @ 1000 Hz (konfigurierbar 100-8000 Hz)
+   - IMUSimulator.cs: Gyro (°/s) + Accelerometer (m/s²) + optionales Sensor-Rauschen
+   - FlightDynamicsBridge.cs: Sendet jetzt echte IMU-Daten in FixedUpdate statt Update
+   - Physik ist jetzt entkoppelt von der Render-Framerate
+
+2. **AUX-Achsen Support für DJI RC3 (Commit cf25319)**
+   - ControllerConfig.cs: AuxAxisMapping für Kippschalter als Achsen statt nur Buttons
+   - RCInputBridge.cs: ReadAuxAxes() mappt Achsenwerte auf PWM (1000-2000)
+   - DJI RC3 3-Pos Switches: -1.0/0.0/+1.0 → 1000/1500/2000 PWM
+
+3. **Controller Debug Window (Commit cf25319)**
+   - EditorWindow: SkyForge → Controller Debug
+   - Zeigt alle 16 RC Channels + alle Gamepad-Achsen/Buttons in Echtzeit
+
+4. **Architekt-Plan Physik (Commit d2abde2)**
+   - docs/architekt-plan-physik-simulation.md
+   - 5 Phasen: FixedUpdate → IMU → Custom Thread → Native BF → LockStep
+   - Recherche: pr0p (1.6kHz), Kinmen Kill (8kHz), KwadSim (20kHz)
+
+**Nächste Schritte:**
+- Controller Debug Window nutzen um DJI RC3 Achsen zu identifizieren
+- AUX-Achsen-Mapping konfigurieren (ARM + Flight Modes)
+- Erster Flugtest
+- Optional: Phase 3 (Custom Physics Thread @ 4-8 kHz)
