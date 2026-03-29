@@ -12,76 +12,78 @@ public class SkyForgeIntegrator
     [MenuItem("SkyForge/Setup Drone in Scene")]
     public static void SetupDroneInScene()
     {
-        // 1. Create drone prefab
-        GameObject dronePrefab = CreateDronePrefab();
-        if (dronePrefab == null) return;
-
-        // 2. Create config assets
+        // 1. Create config assets first
         DroneConfig droneConfig = CreateOrFindAsset<DroneConfig>("Assets/Configs/DroneConfig.asset");
         BridgeConfig bridgeConfig = CreateOrFindAsset<BridgeConfig>("Assets/Configs/BridgeConfig.asset");
         ControllerConfig controllerConfig = CreateOrFindAsset<ControllerConfig>("Assets/Configs/ControllerConfig.asset");
 
-        // 3. Apply default values
+        // 2. Apply default values to configs (ScriptableObjects have public fields)
         ApplyDefaultDroneConfig(droneConfig);
         ApplyDefaultBridgeConfig(bridgeConfig);
         ApplyDefaultControllerConfig(controllerConfig);
 
-        // 4. Connect components
-        DroneController droneController = dronePrefab.GetComponent<DroneController>();
-        droneController.config = droneConfig;
+        // 3. Create drone GameObject
+        GameObject drone = new GameObject("Drone");
+        drone.transform.position = new Vector3(0, 2, 0);
 
-        FlightDynamicsBridge bridge = Object.FindObjectOfType<FlightDynamicsBridge>();
-        if (bridge == null)
-        {
-            GameObject bridgeObj = new GameObject("FlightDynamicsBridge");
-            bridge = bridgeObj.AddComponent<FlightDynamicsBridge>();
-        }
-        bridge.config = bridgeConfig;
-        bridge.droneController = droneController;
+        // Add DroneController (which adds Rigidbody via RequireComponent)
+        DroneController droneController = drone.AddComponent<DroneController>();
 
-        // 5. Ensure RC input bridge exists
-        RCInputBridge rcInput = Object.FindObjectOfType<RCInputBridge>();
-        if (rcInput == null)
-        {
-            GameObject rcObj = new GameObject("RCInputBridge");
-            rcInput = rcObj.AddComponent<RCInputBridge>();
-        }
-        rcInput.config = controllerConfig;
+        // Set DroneController.config via SerializedObject (private [SerializeField])
+        SetSerializedField(droneController, "config", droneConfig);
 
-        // 6. Set spawn position
-        dronePrefab.transform.position = new Vector3(0, 2, 0);
+        // Run DroneSetup to add BoxCollider, motors, FPV camera, placeholder mesh
+        DroneSetup.SetupDronePrefab(drone);
 
-        // 7. Save assets
-        EditorUtility.SetDirty(dronePrefab);
+        // 4. Create FlightDynamicsBridge
+        GameObject bridgeObj = new GameObject("FlightDynamicsBridge");
+        FlightDynamicsBridge bridge = bridgeObj.AddComponent<FlightDynamicsBridge>();
+
+        // Set private fields via SerializedObject
+        SetSerializedField(bridge, "config", bridgeConfig);
+        SetSerializedField(bridge, "droneController", droneController);
+
+        // 5. Create RCInputBridge
+        GameObject rcObj = new GameObject("RCInputBridge");
+        RCInputBridge rcInput = rcObj.AddComponent<RCInputBridge>();
+
+        // Set private field via SerializedObject
+        SetSerializedField(rcInput, "config", controllerConfig);
+
+        // 6. Mark everything dirty and save
+        EditorUtility.SetDirty(drone);
+        EditorUtility.SetDirty(bridgeObj);
+        EditorUtility.SetDirty(rcObj);
         EditorUtility.SetDirty(droneConfig);
         EditorUtility.SetDirty(bridgeConfig);
         EditorUtility.SetDirty(controllerConfig);
-        EditorUtility.SetDirty(bridge);
-        EditorUtility.SetDirty(rcInput);
-        
+
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("[SkyForgeIntegrator] Drone setup complete! Created drone prefab with all configurations and connections.");
+        // Select the drone in hierarchy
+        Selection.activeGameObject = drone;
+
+        Debug.Log("[SkyForge] Setup complete! Drone at (0, 2, 0) with Bridge + RC Input configured.");
+        Debug.Log("[SkyForge] Next: Start SITL with tools/start_sitl.sh, then press Play.");
     }
 
     /// <summary>
-    /// Creates the drone prefab with all required components and children
+    /// Sets a private [SerializeField] on a component using SerializedObject
     /// </summary>
-    static GameObject CreateDronePrefab()
+    static void SetSerializedField(Component component, string fieldName, Object value)
     {
-        GameObject drone = new GameObject("Drone");
-        
-        // Add required components
-        if (drone.GetComponent<DroneController>() == null)
+        SerializedObject so = new SerializedObject(component);
+        SerializedProperty prop = so.FindProperty(fieldName);
+        if (prop != null)
         {
-            drone.AddComponent<DroneController>();
+            prop.objectReferenceValue = value;
+            so.ApplyModifiedProperties();
         }
-        
-        // Use DroneSetup to configure the prefab
-        DroneSetup.SetupDronePrefab(drone);
-        
-        return drone;
+        else
+        {
+            Debug.LogWarning($"[SkyForge] Field '{fieldName}' not found on {component.GetType().Name}");
+        }
     }
 
     /// <summary>
@@ -97,13 +99,11 @@ public class SkyForgeIntegrator
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             AssetDatabase.CreateAsset(asset, path);
+            AssetDatabase.SaveAssets();
         }
         return asset;
     }
 
-    /// <summary>
-    /// Applies default values to the drone configuration based on the architecture plan
-    /// </summary>
     static void ApplyDefaultDroneConfig(DroneConfig config)
     {
         config.mass = 0.5f;
@@ -114,9 +114,6 @@ public class SkyForgeIntegrator
         EditorUtility.SetDirty(config);
     }
 
-    /// <summary>
-    /// Applies default values to the bridge configuration based on the architecture plan
-    /// </summary>
     static void ApplyDefaultBridgeConfig(BridgeConfig config)
     {
         config.bfSITLIPAddress = "127.0.0.1";
@@ -126,52 +123,44 @@ public class SkyForgeIntegrator
         EditorUtility.SetDirty(config);
     }
 
-    /// <summary>
-    /// Applies default values to the controller configuration based on the architecture plan
-    /// </summary>
     static void ApplyDefaultControllerConfig(ControllerConfig config)
     {
         config.bfSITLIPAddress = "127.0.0.1";
         config.rcPort = 9004;
         config.sendRateHz = 100;
-        
-        // Configure axis mappings
+
         config.roll.rcChannel = 0;
         config.roll.invert = false;
         config.roll.deadzone = 0.05f;
         config.roll.expo = 0.0f;
-        
+
         config.pitch.rcChannel = 1;
         config.pitch.invert = false;
         config.pitch.deadzone = 0.05f;
         config.pitch.expo = 0.0f;
-        
+
         config.throttle.rcChannel = 2;
         config.throttle.invert = false;
         config.throttle.deadzone = 0.02f;
         config.throttle.expo = 0.0f;
-        
+
         config.yaw.rcChannel = 3;
         config.yaw.invert = false;
         config.yaw.deadzone = 0.05f;
         config.yaw.expo = 0.0f;
-        
-        // Configure AUX mappings if they exist
+
         if (config.auxMappings != null && config.auxMappings.Length >= 4)
         {
             config.auxMappings[0].rcChannel = 4;
-            config.auxMappings[0].buttonName = "Button South (A/Cross)";
-            
+            config.auxMappings[0].buttonName = "Button South";
             config.auxMappings[1].rcChannel = 5;
-            config.auxMappings[1].buttonName = "Button East (B/Circle)";
-            
+            config.auxMappings[1].buttonName = "Button East";
             config.auxMappings[2].rcChannel = 6;
-            config.auxMappings[2].buttonName = "Button West (X/Square)";
-            
+            config.auxMappings[2].buttonName = "Button West";
             config.auxMappings[3].rcChannel = 7;
-            config.auxMappings[3].buttonName = "Button North (Y/Triangle)";
+            config.auxMappings[3].buttonName = "Button North";
         }
-        
+
         EditorUtility.SetDirty(config);
     }
 }

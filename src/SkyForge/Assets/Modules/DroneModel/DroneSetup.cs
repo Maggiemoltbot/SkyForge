@@ -13,7 +13,7 @@ public class DroneSetup
     static void OnHierarchyChanged()
     {
         // Auto-setup drone prefab when detected in hierarchy
-        DroneController[] controllers = Object.FindObjectsOfType<DroneController>();
+        DroneController[] controllers = Object.FindObjectsByType<DroneController>(FindObjectsSortMode.None);
         foreach (DroneController controller in controllers)
         {
             if (controller.GetComponent<BoxCollider>() == null)
