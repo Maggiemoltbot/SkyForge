@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="https://github.com/Unity-Technologies/UIBuilder" schemaLocation="https://github.com/Unity-Technologies/UIBuilder/uxml/uxml-2022.2.xsd">
+  <VisualElement name="hud" class="hud-container">
+    
+    <!-- Data Display Panel -->
+    <VisualElement class="data-panel">
+      
+      <VisualElement class="data-row">
+        <Label class="label" text="ALT" />
+        <Label name="altitude-value" class="value" text="0" />
+      </VisualElement>
+      
+      <VisualElement class="data-row">
+        <Label class="label" text="SPD" />
+        <Label name="speed-value" class="value" text="0" />
+      </VisualElement>
+      
+      <VisualElement class="data-row">
+        <Label class="label" text="MODE" />
+        <Label name="mode-value" class="value" text="FREECAM" />
+      </VisualElement>
+      
+      <VisualElement class="data-row">
+        <Label class="label" text="ARMED" />
+        <Label name="armed-value" class="value armed" text="ARMED" />
+      </VisualElement>
+      
+      <VisualElement class="data-row">
+        <Label class="label" text="BAT" />
+        <Label name="battery-value" class="value" text="100%" />
+      </VisualElement>
+      
+      <VisualElement class="data-row">
+        <Label class="label" text="SITL" />
+        <Label name="sitl-value" class="value" text="CONNECTED" />
+      </VisualElement>
+      
+    </VisualElement>
+    
+  </VisualElement>
+</UXML>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="https://github.com/Unity-Technologies/UIBuilder" schemaLocation="https://github.com/Unity-Technologies/UIBuilder/uxml/uxml-2022.2.0.xsd">
+  <VisualElement name="start-screen" class="dark-background">
+    
+    <!-- Logo -->
+    <Label text="XFLIGHT" class="logo-text" />
+    <Label text="SkyForge" class="sub-logo-text" />
+    
+    <!-- Map Grid -->
+    <ScrollView name="map-grid" class="map-grid">
+      <!-- Generierte Map-Buttons erscheinen hier -->
+    </ScrollView>
+    
+    <!-- Action Buttons -->
+    <VisualElement class="action-buttons">
+      <Button name="fly-button">Fly</Button>
+      <Button name="controller-setup-button">Controller Setup</Button>
+      <Button name="settings-button">Settings</Button>
+      <Button name="quit-button">Quit</Button>
+    </VisualElement>
+    
+  </VisualElement>
+</UXML>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="https://github.com/Unity-Technologies/UIBuilder" schemaLocation="https://github.com/Unity-Technologies/UIBuilder/uxml/uxml-2022.2.xsd">
+  <VisualElement name="controller-setup" class="wizard-container">
+    
+    <!-- Wizard Header -->
+    <Label text="Controller Setup" class="header" />
+    
+    <!-- Progress Stepper -->
+    <VisualElement class="stepper">
+      <VisualElement class="step">
+        <Label text="1" />
+        <Label text="Throttle" />
+      </VisualElement>
+      <VisualElement class="step">
+        <Label text="2" />
+        <Label text="Yaw" />
+      </VisualElement>
+      <VisualElement class="step">
+        <Label text="3" />
+        <Label text="Pitch" />
+      </VisualElement>
+      <VisualElement class="step">
+        <Label text="4" />
+        <Label text="Roll" />
+      </VisualElement>
+    </VisualElement>
+    
+    <!-- Instructions -->
+    <Label name="instruction-text" text="Move your Throttle stick..." class="instructions" />
+    
+    <!-- Live Preview -->
+    <VisualElement class="live-preview-container">
+      <Label text="Current PWM:" />
+      <VisualElement class="progress-bar">
+        <VisualElement name="progress-fill" />
+      </VisualElement>
+      <Label name="pwm-value" text="0%" />
+    </VisualElement>
+    
+    <!-- Axis Inversion -->
+    <Toggle name="invert-toggle" label="Invert Axis" />
+    
+    <!-- Deadzone Slider -->
+    <VisualElement class="slider-container">
+      <Label text="Deadzone" />
+      <Slider name="deadzone-slider" min="0.01" max="0.25" value="0.15" />
+      <Label name="deadzone-label" text="0.15" />
+    </VisualElement>
+    
+    <!-- Test Button -->
+    <Button name="test-button" class="test-button">Test</Button>
+    
+    <!-- Navigation -->
+    <VisualElement class="nav-buttons">
+      <Button name="previous-button" class="previous">Previous</Button>
+      <Button name="next-button" class="next">Next</Button>
+    </VisualElement>
+    
+  </VisualElement>
+</UXML

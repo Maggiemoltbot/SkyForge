@@ -1,0 +1,94 @@
+.dark-background {
+  background-color: #1a1a2e;
+  color: #ffffff;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.logo-text {
+  text-align: center;
+  font-size: 48px;
+  font-weight: bold;
+  color: #0066ff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.sub-logo-text {
+  text-align: center;
+  font-size: 32px;
+  color: #00ff00;
+  margin-bottom: 30px;
+}
+
+.map-grid {
+  margin: 20px auto;
+  width: 80%;
+  max-width: 600px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.map-grid Button {
+  height: 60px;
+  font-size: 16px;
+  background-color: #16213e;
+  border-radius: 8px;
+  border: 1px solid #0066ff;
+  color: #0066ff;
+  transition: all 0.2s ease;
+}
+
+.map-grid Button:hover {
+  background-color: #0066ff;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.map-grid Button:active {
+  transform: translateY(0px);
+}
+
+.map-grid Button.selected {
+  background-color: #0066ff;
+  color: #ffffff;
+  border: 2px solid #00ff00;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.action-buttons Button {
+  width: 120px;
+  height: 50px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 25px;
+  border: 2px solid #0066ff;
+  transition: all 0.3s ease;
+}
+
+.action-buttons Button:enabled {
+  background-color: #16213e;
+  color: #0066ff;
+}
+
+.action-buttons Button:enabled:hover {
+  background-color: #0066ff;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
+}
+
+.action-buttons Button:enabled:active {
+  transform: scale(0.95);
+}
+
+.action-buttons Button:disabled {
+  background-color: #333333;
+  color: #666666;
+  border-color: #666666;
+  cursor: not-allowed;
+}

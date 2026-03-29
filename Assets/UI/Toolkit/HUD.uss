@@ -1,0 +1,56 @@
+.hud-container {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  pointer-events: none;
+}
+
+.data-panel {
+  background-color: #000000b3;
+  border: 1px solid #00ff00;
+  border-radius: 10px;
+  padding: 10px;
+  width: 150px;
+}
+
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.label {
+  width: 50px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.value {
+  width: 80px;
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #00ff00;
+}
+
+.value.armed {
+  color: #ff0000;
+}
+
+.value.disarmed {
+  color: #00ff00;
+}
+
+.value.low {
+  color: #ffff00;
+}
+
+.value.connected {
+  color: #00ff00;
+}
+
+.value.disconnected {
+  color: #ff0000;
+}
