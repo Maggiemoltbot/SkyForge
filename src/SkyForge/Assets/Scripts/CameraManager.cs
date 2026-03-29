@@ -5,7 +5,6 @@ public class CameraManager : MonoBehaviour
     public enum CameraMode { FreeCam, FPV, ThirdPerson }
     
     public Camera mainCamera;      // Main Camera mit FlyCamera
-    public Camera fpvCamera;        // FPV auf der Drohne
     public Transform droneTransform; // Drone GameObject
     
     [Header("Third Person")]
@@ -13,31 +12,28 @@ public class CameraManager : MonoBehaviour
     [SerializeField] private float followSpeed = 5f;
     
     private CameraMode currentMode = CameraMode.FreeCam;
-    private Camera chaseCamera;
-    private RenderTexture fpvRenderTexture; // Backup der original RT
+    private FlyCamera flyCameraComponent;
+    private Vector3 fpvPosition = new Vector3(0, 0.02f, 0.05f);
+    private float freeCamFOV = 60f;
+    private float fpvFOV = 120f;
+    private float thirdPersonFOV = 60f;
     
     void Start()
     {
-        // Store the original FPV render texture
-        if (fpvCamera != null)
+        // Get the FlyCamera component
+        if (mainCamera != null)
         {
-            fpvRenderTexture = fpvCamera.targetTexture;
+            flyCameraComponent = mainCamera.GetComponent<FlyCamera>();
         }
-        
-        // Create the chase camera as a child of this GameObject
-        GameObject chaseCamObj = new GameObject("ChaseCamera");
-        chaseCamObj.transform.SetParent(transform, false);
-        chaseCamera = chaseCamObj.AddComponent<Camera>();
-        chaseCamera.enabled = false;
         
         // Set initial camera mode
         SwitchToMode(CameraMode.FreeCam);
     }
     
-    void Update()
+    void LateUpdate()
     {
         HandleInput();
-        UpdateChaseCamera();
+        UpdateCameraPosition();
     }
     
     void HandleInput()
@@ -62,18 +58,18 @@ public class CameraManager : MonoBehaviour
         }
     }
     
-    void UpdateChaseCamera()
+    void UpdateCameraPosition()
     {
-        if (currentMode == CameraMode.ThirdPerson && chaseCamera != null && droneTransform != null)
+        if (currentMode == CameraMode.ThirdPerson && mainCamera != null && droneTransform != null)
         {
             // Calculate desired position with offset
             Vector3 desiredPosition = droneTransform.TransformPoint(chaseOffset);
             
             // Smoothly move towards the desired position
-            chaseCamera.transform.position = Vector3.Lerp(chaseCamera.transform.position, desiredPosition, followSpeed * Time.deltaTime);
+            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, desiredPosition, followSpeed * Time.deltaTime);
             
             // Always look at the drone
-            chaseCamera.transform.LookAt(droneTransform.position);
+            mainCamera.transform.LookAt(droneTransform.position);
         }
     }
     
@@ -81,45 +77,62 @@ public class CameraManager : MonoBehaviour
     {
         if (currentMode == mode) return;
         
-        // Disable all cameras first
-        if (mainCamera != null && mainCamera.GetComponent<FlyCamera>() != null)
+        // Reset settings that might have been changed
+        if (mainCamera != null)
         {
-            mainCamera.GetComponent<FlyCamera>().enabled = false;
-        }
-        
-        if (fpvCamera != null)
-        {
-            fpvCamera.enabled = false;
-            fpvCamera.targetTexture = fpvRenderTexture; // Restore render texture
-        }
-        
-        if (chaseCamera != null)
-        {
-            chaseCamera.enabled = false;
+            mainCamera.fieldOfView = freeCamFOV;
         }
         
         // Enable the selected mode
         switch (mode)
         {
             case CameraMode.FreeCam:
-                if (mainCamera != null && mainCamera.GetComponent<FlyCamera>() != null)
+                if (mainCamera != null)
                 {
-                    mainCamera.GetComponent<FlyCamera>().enabled = true;
+                    // Enable FlyCamera component
+                    if (flyCameraComponent != null)
+                    {
+                        flyCameraComponent.enabled = true;
+                    }
+                    
+                    // Set FOV
+                    mainCamera.fieldOfView = freeCamFOV;
                 }
                 break;
                 
             case CameraMode.FPV:
-                if (fpvCamera != null)
+                if (mainCamera != null && droneTransform != null)
                 {
-                    fpvCamera.enabled = true;
-                    fpvCamera.targetTexture = null; // Render directly to screen
+                    // Disable FlyCamera component
+                    if (flyCameraComponent != null)
+                    {
+                        flyCameraComponent.enabled = false;
+                    }
+                    
+                    // Set FPV position and rotation relative to drone
+                    mainCamera.transform.SetParent(droneTransform);
+                    mainCamera.transform.localPosition = fpvPosition;
+                    mainCamera.transform.localRotation = Quaternion.identity;
+                    
+                    // Set FOV
+                    mainCamera.fieldOfView = fpvFOV;
                 }
                 break;
                 
             case CameraMode.ThirdPerson:
-                if (chaseCamera != null)
+                if (mainCamera != null && droneTransform != null)
                 {
-                    chaseCamera.enabled = true;
+                    // Disable FlyCamera component
+                    if (flyCameraComponent != null)
+                    {
+                        flyCameraComponent.enabled = false;
+                    }
+                    
+                    // Detach from drone if it was child
+                    mainCamera.transform.SetParent(null);
+                    
+                    // Set FOV
+                    mainCamera.fieldOfView = thirdPersonFOV;
                 }
                 break;
         }
@@ -137,16 +150,18 @@ public class CameraManager : MonoBehaviour
         switch (currentMode)
         {
             case CameraMode.FreeCam:
-                modeText += "Free Cam";
+                modeText += "FreeCam";
                 break;
             case CameraMode.FPV:
                 modeText += "FPV";
                 break;
             case CameraMode.ThirdPerson:
-                modeText += "Third Person";
+                modeText += "ThirdPerson";
                 break;
         }
         
-        GUI.Label(new Rect(10, 10, 300, 30), modeText, style);
+        modeText += " | F1/F2/F3/Tab";
+        
+        GUI.Label(new Rect(10, Screen.height - 30, 500, 30), modeText, style);
     }
 }

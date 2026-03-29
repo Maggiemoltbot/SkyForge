@@ -4,11 +4,11 @@ using UnityEngine;
 public class PlaceholderMesh : MonoBehaviour
 {
     [Header("Drone Dimensions")]
-    [SerializeField] private float armLength = 0.12f;
-    [SerializeField] private float armWidth = 0.01f;
-    [SerializeField] private float armHeight = 0.005f;
-    [SerializeField] private float centerSize = 0.03f;
-    [SerializeField] private float motorSphereSize = 0.01f;
+    [SerializeField] private float armLength = 0.6f;
+    [SerializeField] private float armWidth = 0.05f;
+    [SerializeField] private float armHeight = 0.025f;
+    [SerializeField] private float centerSize = 0.15f;
+    [SerializeField] private float motorSphereSize = 0.05f;
     private bool isBuilt = false;
     
     void Start()
