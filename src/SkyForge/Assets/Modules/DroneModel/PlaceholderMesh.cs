@@ -30,6 +30,10 @@ public class PlaceholderMesh : MonoBehaviour
         // Prevent duplicate creation
         if (transform.childCount > 0) return;
         isBuilt = true;
+        
+        // Ensure this GameObject is on the Drone layer
+        SetDroneLayer(gameObject);
+        
         // Create center cube
         CreateCenterCube();
         
@@ -80,6 +84,9 @@ public class PlaceholderMesh : MonoBehaviour
         center.transform.localPosition = Vector3.zero;
         center.transform.localScale = new Vector3(centerSize, centerSize, centerSize);
         
+        // Set to drone layer
+        SetDroneLayer(center);
+        
         // Force opaque rendering so drone is visible with Gaussian Splats
         ForceOpaqueRendering(center.GetComponent<Renderer>(), Color.gray);
         
@@ -92,6 +99,9 @@ public class PlaceholderMesh : MonoBehaviour
         GameObject arm = GameObject.CreatePrimitive(PrimitiveType.Cube);
         arm.name = name;
         arm.transform.SetParent(transform);
+        
+        // Set to drone layer
+        SetDroneLayer(arm);
         
         // Position arm at the center of its respective side
         Vector3 position = direction * armLength * 0.5f;
@@ -122,6 +132,9 @@ public class PlaceholderMesh : MonoBehaviour
         motor.transform.localPosition = localPosition;
         motor.transform.localScale = new Vector3(motorSphereSize, motorSphereSize, motorSphereSize);
         
+        // Set to drone layer
+        SetDroneLayer(motor);
+        
         // Force opaque rendering so motor is visible with Gaussian Splats
         ForceOpaqueRendering(motor.GetComponent<Renderer>(), color);
         
@@ -138,6 +151,9 @@ public class PlaceholderMesh : MonoBehaviour
         propeller.transform.SetParent(motor.transform);
         propeller.transform.localPosition = new Vector3(0, 0.01f, 0); // Leicht über Motor
         propeller.transform.localScale = new Vector3(0.1f, 0.002f, 0.1f); // Flache Disc
+
+        // Set to drone layer
+        SetDroneLayer(propeller);
 
         // Force opaque so propeller is visible with Gaussian Splats
         ForceOpaqueRendering(propeller.GetComponent<Renderer>(), new Color(0.5f, 0.5f, 0.5f, 1f));
@@ -178,5 +194,27 @@ public class PlaceholderMesh : MonoBehaviour
         }
         
         CreateMotorMarker(localPosition, color, name, motorIndex, clockwise);
+    }
+    
+    /// <summary>
+    /// Sets the GameObject and all its children to the "Drone" layer
+    /// </summary>
+    /// <param name="obj">GameObject to set layer for</param>
+    private void SetDroneLayer(GameObject obj)
+    {
+        // Try to find the "Drone" layer, if it doesn't exist use layer 3 as default
+        int droneLayer = LayerMask.NameToLayer("Drone");
+        if (droneLayer == -1)
+        {
+            droneLayer = 3; // Default to layer 3
+        }
+        
+        obj.layer = droneLayer;
+        
+        // Recursively set layer for all children
+        foreach (Transform child in obj.transform)
+        {
+            SetDroneLayer(child.gameObject);
+        }
     }
 }

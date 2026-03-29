@@ -6,7 +6,7 @@ Shader "SkyForge/DroneOverlay"
     }
     SubShader
     {
-        Tags { "RenderType"="Overlay" "Queue"="Overlay" "RenderPipeline"="UniversalPipeline" }
+        Tags { "RenderType"="Overlay" "Queue"="Overlay+100" "RenderPipeline"="UniversalPipeline" }
         
         Pass
         {
