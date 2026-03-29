@@ -55,24 +55,15 @@ public class SkyForgeIntegrator
         GameObject cameraManagerObj = new GameObject("CameraManager");
         CameraManager cameraManager = cameraManagerObj.AddComponent<CameraManager>();
         
-        // Find the required components
+        // Find the Main Camera
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
             mainCamera = Object.FindAnyObjectByType<Camera>();
         }
         
-        // Try to find the FPV camera on the drone
-        Camera fpvCamera = null;
-        FPVCamera fpvCameraComponent = drone.GetComponentInChildren<FPVCamera>();
-        if (fpvCameraComponent != null)
-        {
-            fpvCamera = fpvCameraComponent.GetComponent<Camera>();
-        }
-        
-        // Set camera manager references (public fields)
+        // Set camera manager references (public fields — single-camera approach)
         cameraManager.mainCamera = mainCamera;
-        cameraManager.fpvCamera = fpvCamera;
         cameraManager.droneTransform = drone.transform;
 
         // 7. Mark everything dirty and save
