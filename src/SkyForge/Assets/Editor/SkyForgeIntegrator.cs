@@ -66,11 +66,20 @@ public class SkyForgeIntegrator
         cameraManager.mainCamera = mainCamera;
         cameraManager.droneTransform = drone.transform;
 
-        // 7. Mark everything dirty and save
+        // 7. Create Ground Plane (invisible collider so the drone can't fall forever)
+        GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        ground.name = "GroundPlane";
+        ground.transform.position = Vector3.zero;
+        ground.transform.localScale = new Vector3(100, 1, 100); // 1000m x 1000m
+        // Make invisible — keep only the MeshCollider
+        Object.DestroyImmediate(ground.GetComponent<MeshRenderer>());
+
+        // 8. Mark everything dirty and save
         EditorUtility.SetDirty(drone);
         EditorUtility.SetDirty(bridgeObj);
         EditorUtility.SetDirty(rcObj);
         EditorUtility.SetDirty(cameraManagerObj);
+        EditorUtility.SetDirty(ground);
         EditorUtility.SetDirty(droneConfig);
         EditorUtility.SetDirty(bridgeConfig);
         EditorUtility.SetDirty(controllerConfig);
