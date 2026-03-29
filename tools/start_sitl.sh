@@ -19,6 +19,7 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BF_DIR="$PROJECT_DIR/betaflight"
 SITL_BIN="$BF_DIR/obj/main/betaflight_SITL.elf"
 WORK_DIR="$PROJECT_DIR/tools/sitl_workdir"
+PID_FILE="$WORK_DIR/sitl.pid"
 
 # Parse arguments
 REBUILD=false
@@ -36,6 +37,39 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Function to check if ports are free
+check_ports_free() {
+    local ports=(9001 9002 9003 9004 5761)
+    for port in "${ports[@]}"; do
+        if lsof -i :$port -t > /dev/null 2>&1; then
+            echo "ERROR: Port $port is already in use"
+            return 1
+        fi
+    done
+    return 0
+}
+
+# Function to wait for TCP port to become available
+wait_for_port() {
+    local port=$1
+    local timeout=${2:-10}
+    local count=0
+    
+    echo "Waiting for SITL to listen on TCP port $port..."
+    
+    while ! nc -z localhost $port 2>/dev/null; do
+        sleep 0.5
+        count=$((count + 1))
+        if [ $count -gt $((timeout * 2)) ]; then
+            echo "ERROR: Timeout waiting for SITL to listen on port $port"
+            return 1
+        fi
+    done
+    
+    echo "SITL is now listening on TCP port $port"
+    return 0
+}
+
 # Check if betaflight repo exists
 if [[ ! -d "$BF_DIR" ]]; then
     echo "ERROR: Betaflight repository not found at $BF_DIR"
@@ -51,10 +85,22 @@ if [[ "$REBUILD" == true ]] || [[ ! -f "$SITL_BIN" ]]; then
     echo "Build complete."
 fi
 
-# Verify binary exists
-if [[ ! -x "$SITL_BIN" ]]; then
+# Verify binary exists and is executable
+if [[ ! -f "$SITL_BIN" ]]; then
     echo "ERROR: SITL binary not found at $SITL_BIN"
     echo "Run with --rebuild to compile."
+    exit 1
+fi
+
+if [[ ! -x "$SITL_BIN" ]]; then
+    echo "ERROR: SITL binary is not executable at $SITL_BIN"
+    exit 1
+fi
+
+# Check if ports are free
+echo "Checking if required ports are free..."
+if ! check_ports_free; then
+    echo "Please stop processes using these ports or use different ports."
     exit 1
 fi
 
@@ -88,5 +134,19 @@ echo " Configurator: Connect via TCP → 127.0.0.1:5761"
 echo "========================================="
 echo ""
 
-# Start SITL
-exec "$SITL_BIN" "${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}"
+# Start SITL in background
+"$SITL_BIN" "${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}" &
+SITL_PID=$!
+
+# Save PID to file
+echo $SITL_PID > "$PID_FILE"
+
+# Wait for SITL to be ready
+if wait_for_port 5761 15; then
+    echo "SITL started successfully with PID $SITL_PID"
+else
+    echo "WARNING: Failed to confirm SITL is listening on port 5761"
+    echo "SITL may still be starting or encountered an issue"
+fi
+
+echo "SITL is running in the background. Use stop_sitl.sh to stop it."
