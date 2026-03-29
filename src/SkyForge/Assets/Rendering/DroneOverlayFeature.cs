@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #if !UNITY_6000_0_OR_NEWER
 #error Drone Overlay Feature requires Unity 6 or later
 #endif
@@ -24,59 +25,91 @@ namespace SkyForge.Rendering
     {
         class DroneOverlayPass : ScriptableRenderPass
         {
-            private FilteringSettings m_FilteringSettings;
+            private LayerMask m_DroneLayerMask;
             
-            public DroneOverlayPass(LayerMask layerMask)
+            public DroneOverlayPass(LayerMask droneLayerMask)
             {
-                m_FilteringSettings = new FilteringSettings(RenderQueueRange.all, layerMask);
-                renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
+                m_DroneLayerMask = droneLayerMask;
+                // MUST render after the Gaussian Splatting composite pass
+                // which is RenderPassEvent.BeforeRenderingTransparents
+                // So we go after post-processing to be safe
+                renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
+            }
+
+            private class PassData
+            {
+                public RendererListHandle rendererListHandle;
+            }
+
+            private void SetupRendererList(ContextContainer frameData, ref PassData passData, RenderGraph renderGraph)
+            {
+                // Get the frame data needed for renderer list creation
+                UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+                // Create filtering settings to only include objects on the Drone layer
+                FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.all, m_DroneLayerMask);
+
+                // Create sorting settings based on the camera
+                SortingCriteria sortFlags = cameraData.defaultOpaqueSortFlags;
+                SortingSettings sortingSettings = new SortingSettings(cameraData.camera) { criteria = sortFlags };
+
+                // Create drawing settings for UniversalForward shader tag
+                // This ensures we use the standard forward rendering path
+                ShaderTagId shaderTag = new ShaderTagId("UniversalForward");
+                DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(shaderTag, renderingData, cameraData, lightData, sortFlags);
+
+                // Create the renderer list parameters
+                RendererListParams rendererListParams = new RendererListParams(
+                    renderingData.cullResults,
+                    drawingSettings,
+                    filteringSettings
+                );
+
+                // Create the renderer list handle
+                passData.rendererListHandle = renderGraph.CreateRendererList(rendererListParams);
             }
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
-                using var builder = renderGraph.AddUnsafePass("Drone Overlay Pass", out UnsafePassData passData);
+                // Get the resource data for render target access
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-                // Get the required data from the frame container
-                var cameraData = frameData.Get<UniversalCameraData>();
-                var resourceData = frameData.Get<UniversalResourceData>();
-
-                // Declare resource usage
-                builder.UseTexture(resourceData.activeColorTexture, AccessFlags.ReadWrite);
-                
-                // Allow the pass to run even during culling
-                builder.AllowPassCulling(false);
-
-                // Set the render function
-                builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
+                // Create and configure the pass data
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Drone Overlay Pass", out var passData))
                 {
-                    // TODO: Implement actual rendering of drone objects using the passData info
-                    // This would involve:
-                    // 1. Getting the command buffer from context
-                    // 2. Setting up drawing settings for the drone objects
-                    // 3. Calling DrawRenderers with the appropriate settings
-                    // For now, we'll leave this as a placeholder to ensure compilation
+                    // Setup the renderer list with our filtering criteria
+                    SetupRendererList(frameData, ref passData, renderGraph);
                     
-                    // Example of what would go here:
-                    /*
-                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(context.cmd);
-                    var sortingSettings = new SortingSettings(cameraData.camera);
-                    var drawingSettings = new DrawingSettings(new ShaderTagId("UniversalForward"), sortingSettings);
-                    context.renderContext.DrawRenderers(cameraData.cullResults, ref drawingSettings, ref m_FilteringSettings);
-                    */
-                });
-            }
+                    // Validate the renderer list handle
+                    if (!passData.rendererListHandle.IsValid())
+                        return;
 
-            class UnsafePassData
-            {
-                // Currently empty but could hold data needed for the unsafe pass
-                // For example: filtering settings, material references, etc.
+                    // Declare that this pass uses the renderer list
+                    builder.UseRendererList(passData.rendererListHandle);
+                    
+                    // Set the render target to the active camera color texture
+                    // This ensures we're drawing directly to the main camera output
+                    builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
+                    
+                    // We also need to write to the depth texture if the drone shader uses depth
+                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+
+                    // Configure the render function that will execute the draw call
+                    builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                    {
+                        // Draw all renderers in the list (only drone objects due to our filtering)
+                        context.cmd.DrawRendererList(data.rendererListHandle);
+                    });
+                }
             }
         }
 
         [Tooltip("Layer(s) to render as drone overlay")]
         public LayerMask droneLayer = 1 << 3; // Default to layer 3
 
-        private DroneOverlayPass m_ScriptablePass;
+        private DroneOverlayPass m_Pass;
 
         /// <summary>
         /// Called by Unity when the feature is created
@@ -91,7 +124,7 @@ namespace SkyForge.Rendering
             }
             
             droneLayer = 1 << droneLayerIndex;
-            m_ScriptablePass = new DroneOverlayPass(droneLayer);
+            m_Pass = new DroneOverlayPass(droneLayer);
         }
 
         /// <summary>
@@ -99,7 +132,7 @@ namespace SkyForge.Rendering
         /// </summary>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            renderer.EnqueuePass(m_ScriptablePass);
+            renderer.EnqueuePass(m_Pass);
         }
     }
 }
