@@ -417,6 +417,6 @@ public class RCInputBridge : MonoBehaviour
             return 1500;
         }
 
-        return channels[channelIndex];
+        return (ushort)Mathf.Clamp(channels[channelIndex], 1000, 2000);
     }
 }
