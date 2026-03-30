@@ -1,23 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UXML xmlns="https://github.com/Unity-Technologies/UIBuilder" schemaLocation="https://github.com/Unity-Technologies/UIBuilder/uxml/uxml-2022.2.0.xsd">
-  <VisualElement name="start-screen" class="dark-background">
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="start-screen" class="container">
     
     <!-- Logo -->
-    <Label text="XFLIGHT" class="logo-text" />
-    <Label text="SkyForge" class="sub-logo-text" />
+    <ui:VisualElement name="logo-container" class="logo-container">
+      <ui:Label name="logo" text="XFLIGHT" class="logo" />
+    </ui:VisualElement>
     
-    <!-- Map Grid -->
-    <ScrollView name="map-grid" class="map-grid">
-      <!-- Generierte Map-Buttons erscheinen hier -->
-    </ScrollView>
+    <!-- Maps Grid -->
+    <ui:VisualElement name="maps-grid" class="maps-grid">
+      <ui:Button text="Bicycle" class="map-button" />
+      <ui:Button text="Garden" class="map-button" />
+      <ui:Button text="Stump" class="map-button" />
+      <ui:Button text="Treehill" class="map-button" />
+      <ui:Button text="Flowers" class="map-button" />
+      <ui:Button text="DrJohnson" class="map-button" />
+      <ui:Button text="Truck" class="map-button" />
+      <ui:Button text="Playroom" class="map-button" />
+      <ui:Button text="Kitchen" class="map-button" />
+      <ui:Button text="Room" class="map-button" />
+      <ui:Button text="Counter" class="map-button" />
+      <ui:Button text="Bonsai" class="map-button" />
+      <ui:Button text="Train" class="map-button" />
+    </ui:VisualElement>
     
     <!-- Action Buttons -->
-    <VisualElement class="action-buttons">
-      <Button name="fly-button">Fly</Button>
-      <Button name="controller-setup-button">Controller Setup</Button>
-      <Button name="settings-button">Settings</Button>
-      <Button name="quit-button">Quit</Button>
-    </VisualElement>
+    <ui:VisualElement name="action-buttons" class="action-buttons">
+      <ui:Button name="fly-button" text="Fly" class="action-button" />
+      <ui:Button name="controller-setup-button" text="Controller Setup" class="action-button" />
+      <ui:Button name="settings-button" text="Settings" class="action-button" />
+      <ui:Button name="quit-button" text="Quit" class="action-button" />
+    </ui:VisualElement>
     
-  </VisualElement>
-</UXML>
+  </ui:VisualElement>
+</ui:UXML>

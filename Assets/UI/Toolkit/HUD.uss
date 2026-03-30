@@ -1,56 +1,46 @@
 .hud-container {
   position: absolute;
-  bottom: 20px;
   right: 20px;
-  pointer-events: none;
-}
-
-.data-panel {
-  background-color: #000000b3;
-  border: 1px solid #00ff00;
-  border-radius: 10px;
+  bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
   padding: 10px;
-  width: 150px;
+  color: green;
 }
 
-.data-row {
+.flight-data, .connection-status {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.label {
-  width: 50px;
+.data-label {
+  font-size: 16px;
   font-family: 'Courier New', monospace;
-  font-size: 14px;
+  font-weight: bold;
   color: #00ff00;
+}
+
+.status-label {
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
   font-weight: bold;
 }
 
-.value {
-  width: 80px;
-  text-align: right;
-  font-family: 'Courier New', monospace;
+.status-label[text*="ARMED"] {
+  color: #ff0000;
+}
+
+.status-label[text*="CONNECTED"] {
+  color: #00ff00;
+}
+
+.status-label[text*="DISARMED"],
+.status-label[text*="DISCONNECTED"] {
+  color: #00ff00;
+}
+
+.status-label[text*="SITL"] {
   font-size: 14px;
   color: #00ff00;
-}
-
-.value.armed {
-  color: #ff0000;
-}
-
-.value.disarmed {
-  color: #00ff00;
-}
-
-.value.low {
-  color: #ffff00;
-}
-
-.value.connected {
-  color: #00ff00;
-}
-
-.value.disconnected {
-  color: #ff0000;
 }

@@ -1,98 +1,115 @@
+#if UNITY_EDITOR
 using UnityEngine;
+using UnityEditor;
 
-public static class DroneSetup
+[InitializeOnLoad]
+public class DroneSetup
 {
-    public static void Setup()
+    static DroneSetup()
     {
-        Debug.Log("[DroneSetup] Initialisierung der Drohne startet...");
-
-        // Schritt 1: Finde den Drohnen-Controller
-        DroneController droneController = Object.FindObjectOfType<DroneController>();
-        if (droneController == null)
-        {
-            Debug.LogError("[DroneSetup] Kein DroneController im Szenen-Setup gefunden!");
-            return;
-        }
-        
-        droneController.name = "SkyForge_Drone";
-        Debug.Log("[DroneSetup] DroneController gefunden und benannt.");
-
-        // Schritt 2: Finde und konfiguriere die Flight Dynamics Bridge
-        FlightDynamicsBridge fdb = Object.FindInChildrenWithTag<FlightDynamicsBridge>(GameObject.Find("SkyForge_Drone"), "FlightBridgeTag");
-        if (fdb == null)
-        {
-            // Falls kein spezieller Bridge-GameObject existiert, versuche, das Skript direkt zu finden
-            fdb = Object.FindObjectOfType<FlightDynamicsBridge>();
-        }
-        
-        if (fdb == null)
-        {
-            Debug.LogError("[DroneSetup] Keine FlightDynamicsBridge im Szenen-Setup gefunden!");
-            return;
-        }
-        
-        fdb.droneController = droneController;
-        fdb.Start(); // Startet die UDP-Verbindung
-        Debug.Log("[DroneSetup] FlightDynamicsBridge konfiguriert und UDP-Verbindung gestartet.");
-        
-        // Schritt 3: Finde und verbinde den RC Input Bridge
-        RCInputBridge rcInput = Object.FindObjectOfType<RCInputBridge>();
-        if (rcInput != null)
-        {
-            rcInput.flightDynamicsBridge = fdb;
-            Debug.Log("[DroneSetup] RCInputBridge mit FlightDynamicsBridge verknüpft.");
-        }
-        else
-        {
-            Debug.LogWarning("[DroneSetup] Kein RCInputBridge in der Szene gefunden. RC-Eingaben können nicht verarbeitet werden.");
-        }
-
-        // Schritt 4: Finde und verbinde die FPV-Kamera
-        Camera fpvCamera = droneController.GetComponentInChildren<Camera>(true);
-        if (fpvCamera != null)
-        {
-            fpvCamera.gameObject.tag = "MainCamera";
-            fpvCamera.gameObject.name = "FPVCamera";
-            Debug.Log("[DroneSetup] FPV-Kamera als 'MainCamera' markiert.");
-        }
-        else
-        {
-            Debug.LogWarning("[DroneSetup] Keine FPV-Kamera auf dem Drohnen-Objekt gefunden!");
-        }
-
-        // Schritt 5: Finde und aktiviere ein vorhandenes GS-Rendering-Objekt
-        var gsRenderer = Object.FindObjectOfType<UnityGaussianSplatting>();
-        if (gsRenderer != null)
-        {
-            gsRenderer.gameObject.SetActive(true);
-            Debug.Log("[DroneSetup] UnityGaussianSplatting-Renderer gefunden und aktiviert.");
-        }
-        else
-        {
-            Debug.Log("[DroneSetup] Kein UnityGaussianSplatting-Renderer in der Szene. Lade nun die Standard-GS-Map (GS-Map-01).");
-            // Hier könnte der Code zum dynamischen Laden der Standard-Map stehen
-        }
-
-        Debug.Log("[DroneSetup] Komplette Initialisierung abgeschlossen.");
+        EditorApplication.hierarchyChanged += OnHierarchyChanged;
     }
 
-    // Hilfsmethode, um Object.FindObjectOfType in Kind-Objekten zu emulieren (Unity hat keinen direkten Befehl dafür)
-    public static T Object.FindInChildrenWithTag<T>(GameObject parent, string tag) where T : Component
+    static void OnHierarchyChanged()
     {
-        if (parent == null) return null;
-        
-        foreach (Transform child in parent.transform)
+        // Auto-setup drone prefab when detected in hierarchy
+        DroneController[] controllers = Object.FindObjectsByType<DroneController>(FindObjectsSortMode.None);
+        foreach (DroneController controller in controllers)
         {
-            if (child.CompareTag(tag))
+            if (controller.GetComponent<BoxCollider>() == null)
             {
-                return child.GetComponent<T>();
+                SetupDronePrefab(controller.gameObject);
             }
-
-            // Rekursiver Aufruf für Unterelemente
-            T found = Object.FindInChildrenWithTag<T>(child.gameObject, tag);
-            if (found != null)
-                return found;
         }
-        return null;
+    }
+
+    [MenuItem("SkyForge/Setup Drone Prefab")]
+    public static void SetupDronePrefabMenuItem()
+    {
+        GameObject selected = Selection.activeGameObject;
+        if (selected != null && selected.GetComponent<DroneController>() != null)
+        {
+            SetupDronePrefab(selected);
+        }
+        else
+        {
+            Debug.LogError("Please select a GameObject with DroneController component");
+        }
+    }
+
+    public static void SetupDronePrefab(GameObject drone)
+    {
+        // Add BoxCollider (0.3m x 0.05m x 0.3m — Quad-Rahmen)
+        BoxCollider boxCollider = drone.GetComponent<BoxCollider>();
+        if (boxCollider == null)
+        {
+            boxCollider = drone.AddComponent<BoxCollider>();
+        }
+        boxCollider.size = new Vector3(0.3f, 0.05f, 0.3f);
+
+        // Create motor points
+        CreateMotorPoints(drone);
+
+        // Create FPV Camera
+        CreateFPVCamera(drone);
+
+        // Create placeholder mesh
+        CreatePlaceholderMesh(drone);
+    }
+
+    static void CreateMotorPoints(GameObject drone)
+    {
+        string[] motorNames = { "FrontLeft", "FrontRight", "BackLeft", "BackRight" };
+        Vector3[] positions = {
+            new Vector3(0.12f, 0, 0.12f),
+            new Vector3(0.12f, 0, -0.12f),
+            new Vector3(-0.12f, 0, 0.12f),
+            new Vector3(-0.12f, 0, -0.12f)
+        };
+
+        for (int i = 0; i < 4; i++)
+        {
+            Transform motor = drone.transform.Find(motorNames[i]);
+            if (motor == null)
+            {
+                GameObject motorObj = new GameObject(motorNames[i]);
+                motorObj.transform.SetParent(drone.transform);
+                motorObj.transform.localPosition = positions[i];
+                motorObj.transform.localRotation = Quaternion.identity;
+            }
+        }
+    }
+
+    static void CreateFPVCamera(GameObject drone)
+    {
+        Transform fpvCamera = drone.transform.Find("FPVCamera");
+        if (fpvCamera == null)
+        {
+            GameObject cameraObj = new GameObject("FPVCamera");
+            cameraObj.transform.SetParent(drone.transform);
+            
+            // Position 0/0.02/0.05, Rotation 10° nach unten
+            cameraObj.transform.localPosition = new Vector3(0, 0.02f, 0.05f);
+            cameraObj.transform.localRotation = Quaternion.Euler(10, 0, 0);
+            
+            Camera cam = cameraObj.AddComponent<Camera>();
+            cam.fieldOfView = 120f;
+            cam.nearClipPlane = 0.1f;
+            cam.farClipPlane = 500f;
+            
+            // RenderTexture 640x480
+            RenderTexture rt = new RenderTexture(640, 480, 24);
+            cam.targetTexture = rt;
+        }
+    }
+
+    static void CreatePlaceholderMesh(GameObject drone)
+    {
+        // This will be handled by the PlaceholderMesh script
+        if (drone.GetComponent<PlaceholderMesh>() == null)
+        {
+            drone.AddComponent<PlaceholderMesh>();
+        }
     }
 }
+#endif
