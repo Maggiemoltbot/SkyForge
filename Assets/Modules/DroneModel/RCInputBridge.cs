@@ -74,7 +74,6 @@ public class RCInputBridge : MonoBehaviour
         float throttle = ApplyDeadzone(SafeGetAxis(throttleInput)); // Gas (oft 0.0f to 1.0f, also invertieren)
 
         // Konvertiere -1..1 zu 0..1 für Konsistenz
-        throttle = (throttle + 1.0f) * 0.5f;
 
         // Lese Schaltkanal (Typ: Taste oder Joystick-Button)
         bool auxPressed = Input.GetButton(auxSwitchInput); // z.B. Space oder JOY_X
