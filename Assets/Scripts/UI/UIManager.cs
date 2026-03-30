@@ -64,10 +64,25 @@ public class UIManager : MonoBehaviour
             settingsButton = startScreenRoot.Q<Button>("settings-button");
             quitButton = startScreenRoot.Q<Button>("quit-button");
 
-            flyButton?.clicked += () => LoadScene("FlightScene");
-            controllerSetupButton?.clicked += ShowControllerSetup;
-            settingsButton?.clicked += () => Debug.Log("Settings clicked");
-            quitButton?.clicked += () => Application.Quit();
+            if (flyButton != null)
+            {
+                flyButton.clicked += () => LoadScene("FlightScene");
+            }
+
+            if (controllerSetupButton != null)
+            {
+                controllerSetupButton.clicked += ShowControllerSetup;
+            }
+
+            if (settingsButton != null)
+            {
+                settingsButton.clicked += () => Debug.Log("Settings clicked");
+            }
+
+            if (quitButton != null)
+            {
+                quitButton.clicked += () => Application.Quit();
+            }
         }
 
         // ControllerSetup Buttons
@@ -77,9 +92,20 @@ public class UIManager : MonoBehaviour
             previousButton = controllerSetupRoot.Q<Button>("previous-button");
             nextButton = controllerSetupRoot.Q<Button>("next-button");
 
-            testButton?.clicked += () => Debug.Log("Test mode activated");
-            previousButton?.clicked += () => Debug.Log("Previous step");
-            nextButton?.clicked += () => Debug.Log("Next step");
+            if (testButton != null)
+            {
+                testButton.clicked += () => Debug.Log("Test mode activated");
+            }
+
+            if (previousButton != null)
+            {
+                previousButton.clicked += () => Debug.Log("Previous step");
+            }
+
+            if (nextButton != null)
+            {
+                nextButton.clicked += () => Debug.Log("Next step");
+            }
         }
     }
 

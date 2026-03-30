@@ -53,8 +53,13 @@ public class ControllerSetupController : MonoBehaviour
     {
         // Step-Referenzen
         var steps = m_Root.Query(".step").Children<VisualElement>(".step");
-        stepElements = steps.Take(4).ToArray();
-        stepElements[0].AddToClassList("active");
+        var stepList = steps.ToList();
+        var elementCount = Mathf.Min(4, stepList.Count);
+        stepElements = elementCount > 0 ? stepList.GetRange(0, elementCount).ToArray() : System.Array.Empty<VisualElement>();
+        if (stepElements.Length > 0)
+        {
+            stepElements[0].AddToClassList("active");
+        }
         // steps.ElementAt(0).AddToClassList("active");
 
         // Andere Referenzen
@@ -95,35 +100,44 @@ public class ControllerSetupController : MonoBehaviour
             Debug.Log($"Invert {axis} set to: {evt.newValue}");
         });
         
-        previousButton?.clicked += () =>
+        if (previousButton != null)
         {
-            if (currentStep > SetupStep.Throttle)
+            previousButton.clicked += () =>
             {
-                currentStep--;
-                UpdateStepUI();
-            }
-        };
-        
-        nextButton?.clicked += () =>
+                if (currentStep > SetupStep.Throttle)
+                {
+                    currentStep--;
+                    UpdateStepUI();
+                }
+            };
+        }
+
+        if (nextButton != null)
         {
-            if (currentStep < SetupStep.Roll)
+            nextButton.clicked += () =>
             {
-                currentStep++;
-                UpdateStepUI();
-            }
-            else
-            {
-                // Finish Wizard
-                Debug.Log("Controller Setup Complete!");
-                // UIManager.Instance.HideControllerSetup(); // Beispiel
-            }
-        };
-        
-        testButton?.clicked += () =>
+                if (currentStep < SetupStep.Roll)
+                {
+                    currentStep++;
+                    UpdateStepUI();
+                }
+                else
+                {
+                    // Finish Wizard
+                    Debug.Log("Controller Setup Complete!");
+                    // UIManager.Instance.HideControllerSetup(); // Beispiel
+                }
+            };
+        }
+
+        if (testButton != null)
         {
-            Debug.Log("Test button clicked");
-            // Implementiere Testlogik
-        };
+            testButton.clicked += () =>
+            {
+                Debug.Log("Test button clicked");
+                // Implementiere Testlogik
+            };
+        }
     }
     
     void UpdateStepUI()
@@ -224,3 +238,4 @@ public class ControllerSetupController : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
+}
