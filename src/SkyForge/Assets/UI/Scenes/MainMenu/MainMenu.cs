@@ -59,22 +59,22 @@ public class MainMenu : MonoBehaviour
     private void RegisterEventHandlers()
     {
         if (flyButton != null)
-            flyButton.clicked += () => onFly?.Invoke();
+            flyButton.clicked += HandleFlyClicked;
             
         if (controllerButton != null)
-            controllerButton.clicked += () => onControllerSetup?.Invoke();
+            controllerButton.clicked += HandleControllerSetupClicked;
             
         if (mapSelectButton != null)
-            mapSelectButton.clicked += () => onMapSelect?.Invoke();
+            mapSelectButton.clicked += HandleMapSelectClicked;
             
         if (settingsButton != null)
-            settingsButton.clicked += () => onSettings?.Invoke();
+            settingsButton.clicked += HandleSettingsClicked;
             
         if (aboutButton != null)
-            aboutButton.clicked += () => onAbout?.Invoke();
+            aboutButton.clicked += HandleAboutClicked;
             
         if (quitButton != null)
-            quitButton.clicked += () => onQuit?.Invoke();
+            quitButton.clicked += HandleQuitClicked;
     }
     
     void OnDisable()
@@ -85,21 +85,28 @@ public class MainMenu : MonoBehaviour
     private void UnregisterEventHandlers()
     {
         if (flyButton != null)
-            flyButton.clicked -= () => onFly?.Invoke();
+            flyButton.clicked -= HandleFlyClicked;
             
         if (controllerButton != null)
-            controllerButton.clicked -= () => onControllerSetup?.Invoke();
+            controllerButton.clicked -= HandleControllerSetupClicked;
             
         if (mapSelectButton != null)
-            mapSelectButton.clicked -= () => onMapSelect?.Invoke();
+            mapSelectButton.clicked -= HandleMapSelectClicked;
             
         if (settingsButton != null)
-            settingsButton.clicked -= () => onSettings?.Invoke();
+            settingsButton.clicked -= HandleSettingsClicked;
             
         if (aboutButton != null)
-            aboutButton.clicked -= () => onAbout?.Invoke();
+            aboutButton.clicked -= HandleAboutClicked;
             
         if (quitButton != null)
-            quitButton.clicked -= () => onQuit?.Invoke();
+            quitButton.clicked -= HandleQuitClicked;
     }
+
+    private void HandleFlyClicked() => onFly?.Invoke();
+    private void HandleControllerSetupClicked() => onControllerSetup?.Invoke();
+    private void HandleMapSelectClicked() => onMapSelect?.Invoke();
+    private void HandleSettingsClicked() => onSettings?.Invoke();
+    private void HandleAboutClicked() => onAbout?.Invoke();
+    private void HandleQuitClicked() => onQuit?.Invoke();
 }
