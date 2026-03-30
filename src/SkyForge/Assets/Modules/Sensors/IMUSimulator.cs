@@ -54,24 +54,25 @@ public class IMUSimulator : MonoBehaviour
     }
 
     /// <summary>
-    /// Calculates gyroscope data in degrees/second
+    /// Calculates gyroscope data in radians/second
     /// </summary>
-    /// <returns>Gyroscope angular velocity vector in degrees/second</returns>
+    /// <returns>Gyroscope angular velocity vector in radians/second</returns>
     public Vector3 GetGyroData()
     {
         if (droneRigidbody == null)
             return Vector3.zero;
 
-        // Get angular velocity in radians/second and convert to degrees/second
-        Vector3 gyroData = droneRigidbody.angularVelocity * Mathf.Rad2Deg;
+        // Get angular velocity in radians/second directly from the rigidbody
+        Vector3 gyroData = droneRigidbody.angularVelocity;
         
-        // Add bias and noise if enabled
+        // Add bias and noise if enabled (inspector values are configured in degrees)
         if (enableNoise)
         {
-            gyroData += gyroBias;
-            gyroData.x += RandomGaussian() * gyroNoiseStdDev;
-            gyroData.y += RandomGaussian() * gyroNoiseStdDev;
-            gyroData.z += RandomGaussian() * gyroNoiseStdDev;
+            float degreesToRadians = Mathf.Deg2Rad;
+            gyroData += gyroBias * degreesToRadians;
+            gyroData.x += RandomGaussian() * gyroNoiseStdDev * degreesToRadians;
+            gyroData.y += RandomGaussian() * gyroNoiseStdDev * degreesToRadians;
+            gyroData.z += RandomGaussian() * gyroNoiseStdDev * degreesToRadians;
         }
         
         return gyroData;
