@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -13,8 +14,7 @@ public class StartScreenController : MonoBehaviour
 
     public UIManager uiManager;
 
-    // Map-Namen aus dem PROJECT_CONTEXT
-die 13 Karten
+    // Map-Namen aus dem PROJECT_CONTEXT – die 13 Karten
     private string[] mapNames = {
         "GS-Map-01", "GS-Map-02", "GS-Map-03", "GS-Map-04", "GS-Map-05",
         "GS-Map-06", "GS-Map-07", "GS-Map-08", "GS-Map-09", "GS-Map-10",
@@ -103,7 +103,7 @@ die 13 Karten
             if (child is Button button && button.text == mapName)
             {
                 button.AddToClassList("selected");
-                selectedMapIndex = mapNames.IndexOf(mapName);
+                selectedMapIndex = Array.IndexOf(mapNames, mapName);
                 break;
             }
         }
