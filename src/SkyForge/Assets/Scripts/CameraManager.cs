@@ -18,6 +18,11 @@ public class CameraManager : MonoBehaviour
     private float freeCamFOV = 60f;
     private float fpvFOV = 120f;
     private float thirdPersonFOV = 60f;
+
+    private GUIStyle cameraLabelStyle;
+    private GUIContent cameraLabelContent;
+    private static readonly string[] cameraModeNames = { "FreeCam", "FPV", "ThirdPerson" };
+    private const string CameraInstructionSuffix = " | F1/F2/F3/Tab";
     
     void Start()
     {
@@ -144,28 +149,25 @@ public class CameraManager : MonoBehaviour
         currentMode = mode;
     }
     
+    void EnsureGuiResources()
+    {
+        if (cameraLabelStyle != null)
+            return;
+
+        cameraLabelStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 20
+        };
+        cameraLabelStyle.normal.textColor = Color.white;
+        cameraLabelContent = new GUIContent();
+    }
+
     void OnGUI()
     {
-        GUIStyle style = new GUIStyle();
-        style.fontSize = 20;
-        style.normal.textColor = Color.white;
-        
-        string modeText = "Camera: ";
-        switch (currentMode)
-        {
-            case CameraMode.FreeCam:
-                modeText += "FreeCam";
-                break;
-            case CameraMode.FPV:
-                modeText += "FPV";
-                break;
-            case CameraMode.ThirdPerson:
-                modeText += "ThirdPerson";
-                break;
-        }
-        
-        modeText += " | F1/F2/F3/Tab";
-        
-        GUI.Label(new Rect(10, Screen.height - 30, 500, 30), modeText, style);
+        EnsureGuiResources();
+
+        cameraLabelContent.text = string.Concat("Camera: ", cameraModeNames[(int)currentMode], CameraInstructionSuffix);
+        GUI.Label(new Rect(10f, Screen.height - 30f, 500f, 30f), cameraLabelContent, cameraLabelStyle);
     }
+
 }
