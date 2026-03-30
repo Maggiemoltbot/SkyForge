@@ -16,7 +16,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BF_DIR="$PROJECT_DIR/betaflight"
+BF_DIR="$PROJECT_DIR/beta"
 SITL_BIN="$BF_DIR/obj/main/betaflight_SITL.elf"
 WORK_DIR="$PROJECT_DIR/tools/sitl_workdir"
 PID_FILE="$WORK_DIR/sitl.pid"
@@ -72,8 +72,8 @@ wait_for_port() {
 
 # Check if betaflight repo exists
 if [[ ! -d "$BF_DIR" ]]; then
-    echo "ERROR: Betaflight repository not found at $BF_DIR"
-    echo "Clone it first: cd $PROJECT_DIR && git clone https://github.com/betaflight/betaflight.git"
+    echo "ERROR: Betaflight build directory not found at $BF_DIR"
+    echo "Clone it first: cd $PROJECT_DIR && git clone https://github.com/betaflight/betaflight.git beta"
     exit 1
 fi
 
