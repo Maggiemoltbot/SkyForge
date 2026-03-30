@@ -1,201 +1,395 @@
-using UnityEngine;
+using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
+using UnityEngine.UIElements;
 
+[RequireComponent(typeof(UIDocument))]
 public class ControllerConfigPanel : MonoBehaviour
 {
     [Header("References")]
     public ControllerConfig config;
     public RCInputBridge rcBridge;
-    
-    private bool showPanel = false;
-    private Vector2 scrollPosition;
-    
-    // Temp values für Slider (OnGUI braucht float-Felder)
-    private float rollDeadzoneTemp;
-    private float rollExpoTemp;
-    private float pitchDeadzoneTemp;
-    private float pitchExpoTemp;
-    private float throttleDeadzoneTemp;
-    private float throttleExpoTemp;
-    private float yawDeadzoneTemp;
-    private float yawExpoTemp;
-    
-    private int windowID = 1;
-    private Rect windowRect = new Rect(20, 20, 400, 600);
 
-    void Update()
+    [Header("UI Toolkit")]
+    [SerializeField] private VisualTreeAsset overlayAsset;
+    [SerializeField] private string overlayResourcePath = "UI/ControllerConfigOverlay";
+
+    private UIDocument uiDocument;
+    private VisualElement root;
+    private Label controllerLabel;
+    private Label connectionLabel;
+    private Button closeButton;
+    private Button saveButton;
+    private Button loadButton;
+    private Button testButton;
+
+    private bool isVisible;
+    private bool callbacksRegistered;
+
+    private readonly List<string> channelChoices = new List<string>(16);
+
+    private AxisUI rollUI;
+    private AxisUI pitchUI;
+    private AxisUI throttleUI;
+    private AxisUI yawUI;
+
+    private struct AxisUI
     {
-        if (Input.GetKeyDown(KeyCode.F4))
-            showPanel = !showPanel;
+        public string Name;
+        public AxisMapping Mapping;
+        public Label LiveValue;
+        public ProgressBar Progress;
+        public Toggle InvertToggle;
+        public Slider DeadzoneSlider;
+        public Slider ExpoSlider;
+        public DropdownField ChannelDropdown;
     }
-    
-    void OnGUI()
+    private void Awake()
     {
-        if (!showPanel) return;
-        
-        windowRect = GUILayout.Window(windowID, windowRect, DrawWindow, "Controller Configuration");
-    }
-    
-    void DrawWindow(int windowID)
-    {
-        GUILayout.Space(10);
-        
-        // Controller info
-        GUILayout.Label("Controller Info", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-        GUILayout.Label($"Active Controller: {(rcBridge != null ? rcBridge.ActiveController : "N/A")}");
-        GUILayout.Label($"Connected: {(rcBridge != null ? rcBridge.IsConnected.ToString() : "N/A")}");
-        
-        GUILayout.Space(10);
-        
-        // Scroll view for axis settings
-        scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(400));
-        
-        // Roll axis
-        DrawAxisSettings("Roll", config.roll, ref rollDeadzoneTemp, ref rollExpoTemp);
-        
-        // Pitch axis
-        DrawAxisSettings("Pitch", config.pitch, ref pitchDeadzoneTemp, ref pitchExpoTemp);
-        
-        // Throttle axis
-        DrawAxisSettings("Throttle", config.throttle, ref throttleDeadzoneTemp, ref throttleExpoTemp);
-        
-        // Yaw axis
-        DrawAxisSettings("Yaw", config.yaw, ref yawDeadzoneTemp, ref yawExpoTemp);
-        
-        GUILayout.EndScrollView();
-        
-        GUILayout.Space(10);
-        
-        // Save/Load buttons
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Save Configuration"))
+        uiDocument = GetComponent<UIDocument>();
+
+        if (overlayAsset == null && !string.IsNullOrEmpty(overlayResourcePath))
         {
-            SaveConfiguration();
+            overlayAsset = Resources.Load<VisualTreeAsset>(overlayResourcePath);
         }
-        if (GUILayout.Button("Load Configuration"))
+
+        if (overlayAsset == null)
         {
-            LoadConfiguration();
+            Debug.LogError("[ControllerConfigPanel] Missing controller config overlay asset.");
+            return;
         }
-        GUILayout.EndHorizontal();
-        
-        // Test mode button
-        GUILayout.Space(5);
-        if (GUILayout.Button("Toggle Test Mode"))
+
+        uiDocument.visualTreeAsset = overlayAsset;
+
+        if (uiDocument.panelSettings == null)
         {
-            ToggleTestMode();
+            PanelSettings runtimePanelSettings = ScriptableObject.CreateInstance<PanelSettings>();
+            runtimePanelSettings.scaleMode = PanelScaleMode.ConstantPixelSize;
+            runtimePanelSettings.referenceDpi = 96f;
+            uiDocument.panelSettings = runtimePanelSettings;
         }
-        
-        GUI.DragWindow();
-    }
-    
-    void DrawAxisSettings(string axisName, AxisMapping axisMapping, ref float deadzoneTemp, ref float expoTemp)
-    {
-        GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
-        GUILayout.Label(axisName, new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-        
-        // Live PWM value
-        if (rcBridge != null)
-        {
-            ushort liveValue = rcBridge.GetChannelValue(axisMapping.rcChannel);
-            GUILayout.Label($"Live Value: {liveValue} (Channel {axisMapping.rcChannel})");
-        }
-        
-        // Invert toggle
-        bool newInvert = GUILayout.Toggle(axisMapping.invert, "Invert Axis");
-        if (newInvert != axisMapping.invert)
-        {
-            axisMapping.invert = newInvert;
-        }
-        
-        // Deadzone slider
-        GUILayout.Label($"Deadzone: {axisMapping.deadzone:F3}");
-        deadzoneTemp = axisMapping.deadzone; // Sync temp value
-        deadzoneTemp = GUILayout.HorizontalSlider(deadzoneTemp, 0f, 0.5f);
-        if (Mathf.Abs(deadzoneTemp - axisMapping.deadzone) > 0.001f)
-        {
-            axisMapping.deadzone = deadzoneTemp;
-        }
-        
-        // Expo slider
-        GUILayout.Label($"Expo: {axisMapping.expo:F3}");
-        expoTemp = axisMapping.expo; // Sync temp value
-        expoTemp = GUILayout.HorizontalSlider(expoTemp, 0f, 1f);
-        if (Mathf.Abs(expoTemp - axisMapping.expo) > 0.001f)
-        {
-            axisMapping.expo = expoTemp;
-        }
-        
-        // RC Channel selection
-        GUILayout.Label("RC Channel:");
-        string[] channels = new string[16];
+
         for (int i = 0; i < 16; i++)
         {
-            channels[i] = i.ToString();
-        }
-        
-        int currentChannel = axisMapping.rcChannel;
-        int newChannel = GUILayout.SelectionGrid(currentChannel, channels, 8);
-        if (newChannel != currentChannel)
-        {
-            axisMapping.rcChannel = newChannel;
+            channelChoices.Add(i.ToString());
         }
     }
-    
-    void SaveConfiguration()
+
+    private void OnEnable()
     {
-        if (config == null) return;
-        
+        BuildUI();
+        HideOverlay();
+        SyncUIFromConfig();
+        UpdateStatusLabels();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F4))
+        {
+            ToggleOverlay();
+        }
+
+        if (isVisible)
+        {
+            UpdateStatusLabels();
+            UpdateLiveValues();
+        }
+    }
+
+    private void BuildUI()
+    {
+        if (root != null)
+        {
+            return;
+        }
+
+        root = uiDocument.rootVisualElement;
+        if (root == null)
+        {
+            Debug.LogError("[ControllerConfigPanel] UI Document did not create root visual element.");
+            return;
+        }
+
+        controllerLabel = root.Q<Label>("controller-label");
+        connectionLabel = root.Q<Label>("connection-label");
+        closeButton = root.Q<Button>("close-button");
+        saveButton = root.Q<Button>("save-button");
+        loadButton = root.Q<Button>("load-button");
+        testButton = root.Q<Button>("test-button");
+
+        rollUI = BuildAxisUI("roll", config != null ? config.roll : null);
+        pitchUI = BuildAxisUI("pitch", config != null ? config.pitch : null);
+        throttleUI = BuildAxisUI("throttle", config != null ? config.throttle : null);
+        yawUI = BuildAxisUI("yaw", config != null ? config.yaw : null);
+
+        if (!callbacksRegistered)
+        {
+            RegisterCallbacks();
+            callbacksRegistered = true;
+        }
+    }
+    private AxisUI BuildAxisUI(string prefix, AxisMapping mapping)
+    {
+        AxisUI ui = new AxisUI
+        {
+            Name = prefix,
+            Mapping = mapping,
+            LiveValue = root.Q<Label>($"{prefix}-live"),
+            Progress = root.Q<ProgressBar>($"{prefix}-progress"),
+            InvertToggle = root.Q<Toggle>($"{prefix}-invert"),
+            DeadzoneSlider = root.Q<Slider>($"{prefix}-deadzone"),
+            ExpoSlider = root.Q<Slider>($"{prefix}-expo"),
+            ChannelDropdown = root.Q<DropdownField>($"{prefix}-channel")
+        };
+
+        if (ui.Progress != null)
+        {
+            ui.Progress.lowValue = 1000f;
+            ui.Progress.highValue = 2000f;
+            ui.Progress.value = 1500f;
+        }
+
+        if (ui.ChannelDropdown != null)
+        {
+            ui.ChannelDropdown.choices = channelChoices;
+        }
+
+        return ui;
+    }
+
+    private void RegisterCallbacks()
+    {
+        if (closeButton != null)
+        {
+            closeButton.clicked += HideOverlay;
+        }
+
+        if (saveButton != null)
+        {
+            saveButton.clicked += SaveConfiguration;
+        }
+
+        if (loadButton != null)
+        {
+            loadButton.clicked += LoadConfiguration;
+        }
+
+        if (testButton != null)
+        {
+            testButton.clicked += ToggleTestMode;
+        }
+
+        RegisterAxisCallbacks(rollUI);
+        RegisterAxisCallbacks(pitchUI);
+        RegisterAxisCallbacks(throttleUI);
+        RegisterAxisCallbacks(yawUI);
+    }
+
+    private void RegisterAxisCallbacks(AxisUI ui)
+    {
+        if (ui.Mapping == null)
+        {
+            return;
+        }
+
+        if (ui.InvertToggle != null)
+        {
+            ui.InvertToggle.RegisterValueChangedCallback(evt =>
+            {
+                ui.Mapping.invert = evt.newValue;
+            });
+        }
+
+        if (ui.DeadzoneSlider != null)
+        {
+            ui.DeadzoneSlider.RegisterValueChangedCallback(evt =>
+            {
+                ui.Mapping.deadzone = evt.newValue;
+            });
+        }
+
+        if (ui.ExpoSlider != null)
+        {
+            ui.ExpoSlider.RegisterValueChangedCallback(evt =>
+            {
+                ui.Mapping.expo = evt.newValue;
+            });
+        }
+
+        if (ui.ChannelDropdown != null)
+        {
+            ui.ChannelDropdown.RegisterValueChangedCallback(evt =>
+            {
+                if (int.TryParse(evt.newValue, out int channel))
+                {
+                    ui.Mapping.rcChannel = channel;
+                }
+            });
+        }
+    }
+    private void ToggleOverlay()
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        if (isVisible)
+        {
+            HideOverlay();
+        }
+        else
+        {
+            ShowOverlay();
+        }
+    }
+
+    private void ShowOverlay()
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        root.style.display = DisplayStyle.Flex;
+        isVisible = true;
+
+        SyncUIFromConfig();
+        UpdateStatusLabels();
+        UpdateLiveValues();
+    }
+
+    private void HideOverlay()
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        root.style.display = DisplayStyle.None;
+        isVisible = false;
+    }
+
+    private void SyncUIFromConfig()
+    {
+        SyncAxisUI(rollUI);
+        SyncAxisUI(pitchUI);
+        SyncAxisUI(throttleUI);
+        SyncAxisUI(yawUI);
+    }
+
+    private void SyncAxisUI(AxisUI ui)
+    {
+        if (ui.Mapping == null)
+        {
+            return;
+        }
+
+        if (ui.InvertToggle != null)
+        {
+            ui.InvertToggle.SetValueWithoutNotify(ui.Mapping.invert);
+        }
+
+        if (ui.DeadzoneSlider != null)
+        {
+            ui.DeadzoneSlider.SetValueWithoutNotify(ui.Mapping.deadzone);
+        }
+
+        if (ui.ExpoSlider != null)
+        {
+            ui.ExpoSlider.SetValueWithoutNotify(ui.Mapping.expo);
+        }
+
+        if (ui.ChannelDropdown != null)
+        {
+            string value = Mathf.Clamp(ui.Mapping.rcChannel, 0, 15).ToString();
+            ui.ChannelDropdown.SetValueWithoutNotify(value);
+        }
+    }
+    private void UpdateStatusLabels()
+    {
+        if (controllerLabel != null)
+        {
+            string controllerName = rcBridge != null ? rcBridge.ActiveController : "None";
+            controllerLabel.text = $"Controller: {controllerName}";
+        }
+
+        if (connectionLabel != null)
+        {
+            bool connected = rcBridge != null && rcBridge.IsConnected;
+            connectionLabel.text = $"Connected: {(connected ? "Yes" : "No")}";
+        }
+    }
+
+    private void UpdateLiveValues()
+    {
+        UpdateAxisLiveUI(rollUI);
+        UpdateAxisLiveUI(pitchUI);
+        UpdateAxisLiveUI(throttleUI);
+        UpdateAxisLiveUI(yawUI);
+    }
+
+    private void UpdateAxisLiveUI(AxisUI ui)
+    {
+        if (ui.Mapping == null)
+        {
+            return;
+        }
+
+        ushort value = rcBridge != null ? rcBridge.GetChannelValue(ui.Mapping.rcChannel) : (ushort)1500;
+
+        if (ui.LiveValue != null)
+        {
+            ui.LiveValue.text = $"Live: {value} (CH {ui.Mapping.rcChannel})";
+        }
+
+        if (ui.Progress != null)
+        {
+            float clamped = Mathf.Clamp(value, ui.Progress.lowValue, ui.Progress.highValue);
+            ui.Progress.value = clamped;
+        }
+    }
+    private void SaveConfiguration()
+    {
+        if (config == null)
+        {
+            Debug.LogWarning("[ControllerConfigPanel] Cannot save configuration - ControllerConfig missing.");
+            return;
+        }
+
         string filePath = Path.Combine(Application.persistentDataPath, "ControllerMapping.json");
         string json = JsonUtility.ToJson(config, true);
         File.WriteAllText(filePath, json);
         Debug.Log($"Controller configuration saved to: {filePath}");
     }
-    
-    void LoadConfiguration()
+
+    private void LoadConfiguration()
     {
-        if (config == null) return;
-        
-        string filePath = Path.Combine(Application.persistentDataPath, "ControllerMapping.json");
-        if (File.Exists(filePath))
+        if (config == null)
         {
-            string json = File.ReadAllText(filePath);
-            JsonUtility.FromJsonOverwrite(json, config);
-            Debug.Log($"Controller configuration loaded from: {filePath}");
-            
-            // Sync temp values after loading
-            SyncTempValues();
+            Debug.LogWarning("[ControllerConfigPanel] Cannot load configuration - ControllerConfig missing.");
+            return;
         }
-        else
+
+        string filePath = Path.Combine(Application.persistentDataPath, "ControllerMapping.json");
+        if (!File.Exists(filePath))
         {
             Debug.LogWarning($"Configuration file not found: {filePath}");
+            return;
         }
+
+        string json = File.ReadAllText(filePath);
+        JsonUtility.FromJsonOverwrite(json, config);
+        SyncUIFromConfig();
+        Debug.Log($"Controller configuration loaded from: {filePath}");
     }
-    
-    void ToggleTestMode()
+
+    private void ToggleTestMode()
     {
         if (rcBridge != null)
         {
-            // This would typically toggle some debug visualization or special mode
-            // For now we'll just log it
             Debug.Log("Test mode toggled");
         }
-    }
-    
-    void SyncTempValues()
-    {
-        // Sync temp values with current config values
-        rollDeadzoneTemp = config.roll.deadzone;
-        rollExpoTemp = config.roll.expo;
-        pitchDeadzoneTemp = config.pitch.deadzone;
-        pitchExpoTemp = config.pitch.expo;
-        throttleDeadzoneTemp = config.throttle.deadzone;
-        throttleExpoTemp = config.throttle.expo;
-        yawDeadzoneTemp = config.yaw.deadzone;
-        yawExpoTemp = config.yaw.expo;
-    }
-    
-    void OnEnable()
-    {
-        SyncTempValues();
     }
 }

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Style src="ControllerConfigOverlay.uss" />
+  <ui:VisualElement name="overlay-root" class="overlay">
+    <ui:VisualElement class="overlay__header">
+      <ui:Label name="title-label" class="overlay__title" text="Controller Configuration" />
+      <ui:Button name="close-button" class="overlay__close" text="Close (F4)" />
+    </ui:VisualElement>
+
+    <ui:VisualElement class="overlay__status">
+      <ui:Label name="controller-label" class="overlay__status-entry" text="Controller: -" />
+      <ui:Label name="connection-label" class="overlay__status-entry" text="Connected: -" />
+    </ui:VisualElement>
+
+    <ui:ScrollView name="axis-scroll" class="overlay__scroll">
+      <ui:VisualElement class="axis" name="axis-roll">
+        <ui:Label class="axis__title" text="Roll" />
+        <ui:Label class="axis__live" name="roll-live" text="Live: 1500" />
+        <ui:ProgressBar class="axis__progress" name="roll-progress" lowValue="1000" highValue="2000" value="1500" />
+        <ui:Toggle name="roll-invert" text="Invert Axis" />
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Deadzone" />
+          <ui:Slider name="roll-deadzone" lowValue="0" highValue="0.5" showInputField="true" />
+        </ui:VisualElement>
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Expo" />
+          <ui:Slider name="roll-expo" lowValue="0" highValue="1" showInputField="true" />
+        </ui:VisualElement>
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Channel" />
+          <ui:DropdownField name="roll-channel" />
+        </ui:VisualElement>
+      </ui:VisualElement>
+
+      <ui:VisualElement class="axis" name="axis-pitch">
+        <ui:Label class="axis__title" text="Pitch" />
+        <ui:Label class="axis__live" name="pitch-live" text="Live: 1500" />
+        <ui:ProgressBar class="axis__progress" name="pitch-progress" lowValue="1000" highValue="2000" value="1500" />
+        <ui:Toggle name="pitch-invert" text="Invert Axis" />
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Deadzone" />
+          <ui:Slider name="pitch-deadzone" lowValue="0" highValue="0.5" showInputField="true" />
+        </ui:VisualElement>
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Expo" />
+          <ui:Slider name="pitch-expo" lowValue="0" highValue="1" showInputField="true" />
+        </ui:VisualElement>
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Channel" />
+          <ui:DropdownField name="pitch-channel" />
+        </ui:VisualElement>
+      </ui:VisualElement>
+
+      <ui:VisualElement class="axis" name="axis-throttle">
+        <ui:Label class="axis__title" text="Throttle" />
+        <ui:Label class="axis__live" name="throttle-live" text="Live: 1500" />
+        <ui:ProgressBar class="axis__progress" name="throttle-progress" lowValue="1000" highValue="2000" value="1500" />
+        <ui:Toggle name="throttle-invert" text="Invert Axis" />
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Deadzone" />
+          <ui:Slider name="throttle-deadzone" lowValue="0" highValue="0.5" showInputField="true" />
+        </ui:VisualElement>
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Expo" />
+          <ui:Slider name="throttle-expo" lowValue="0" highValue="1" showInputField="true" />
+        </ui:VisualElement>
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Channel" />
+          <ui:DropdownField name="throttle-channel" />
+        </ui:VisualElement>
+      </ui:VisualElement>
+
+      <ui:VisualElement class="axis" name="axis-yaw">
+        <ui:Label class="axis__title" text="Yaw" />
+        <ui:Label class="axis__live" name="yaw-live" text="Live: 1500" />
+        <ui:ProgressBar class="axis__progress" name="yaw-progress" lowValue="1000" highValue="2000" value="1500" />
+        <ui:Toggle name="yaw-invert" text="Invert Axis" />
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Deadzone" />
+          <ui:Slider name="yaw-deadzone" lowValue="0" highValue="0.5" showInputField="true" />
+        </ui:VisualElement>
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Expo" />
+          <ui:Slider name="yaw-expo" lowValue="0" highValue="1" showInputField="true" />
+        </ui:VisualElement>
+        <ui:VisualElement class="axis__field">
+          <ui:Label class="axis__field-label" text="Channel" />
+          <ui:DropdownField name="yaw-channel" />
+        </ui:VisualElement>
+      </ui:VisualElement>
+    </ui:ScrollView>
+
+    <ui:VisualElement class="overlay__actions">
+      <ui:Button name="save-button" text="Save Configuration" class="overlay__action-button" />
+      <ui:Button name="load-button" text="Load Configuration" class="overlay__action-button" />
+      <ui:Button name="test-button" text="Toggle Test Mode" class="overlay__action-button" />
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>
