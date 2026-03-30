@@ -3,8 +3,28 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "OSDData", menuName = "SkyForge/OSD Data")]
 public class OSDData : ScriptableObject
 {
+    private const string ResourcePath = "Configs/OSDData";
     private static OSDData instance;
-    public static OSDData Instance => instance ??= CreateInstance<OSDData>();
+    public static OSDData Instance
+    {
+        get
+        {
+            if (instance != null)
+            {
+                return instance;
+            }
+
+            instance = Resources.Load<OSDData>(ResourcePath);
+            if (instance == null)
+            {
+                Debug.LogWarning($"[OSDData] Missing resource at Resources/{ResourcePath}. Using temporary runtime instance.");
+                instance = CreateInstance<OSDData>();
+                instance.hideFlags = HideFlags.DontSave;
+            }
+
+            return instance;
+        }
+    }
 
     [Header("Battery")]
     public float batteryVoltage = 16.8f;
@@ -25,6 +45,16 @@ public class OSDData : ScriptableObject
     {
         instance = this;
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+    }
+#endif
 
     public void SetBatteryData(float voltage, float current, int consumption)
     {
