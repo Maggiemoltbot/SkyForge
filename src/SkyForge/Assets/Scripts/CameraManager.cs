@@ -90,6 +90,9 @@ public class CameraManager : MonoBehaviour
             case CameraMode.FreeCam:
                 if (mainCamera != null)
                 {
+                    // Ensure camera is detached from the drone hierarchy when entering FreeCam
+                    mainCamera.transform.SetParent(null);
+
                     // Enable FlyCamera component
                     if (flyCameraComponent != null)
                     {
