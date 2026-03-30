@@ -21,13 +21,13 @@ public class ControllerDebugWindow : EditorWindow
         // Find RCInputBridge in the scene
         if (rcInputBridge == null)
         {
-            rcInputBridge = FindObjectOfType<RCInputBridge>();
+            rcInputBridge = Object.FindFirstObjectByType<RCInputBridge>();
             if (rcInputBridge == null)
             {
                 EditorGUILayout.HelpBox("No RCInputBridge found in scene", MessageType.Warning);
                 if (GUILayout.Button("Refresh"))
                 {
-                    rcInputBridge = FindObjectOfType<RCInputBridge>();
+                    rcInputBridge = Object.FindFirstObjectByType<RCInputBridge>();
                 }
                 return;
             }

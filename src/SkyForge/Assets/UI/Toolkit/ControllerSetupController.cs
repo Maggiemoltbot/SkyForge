@@ -81,8 +81,8 @@ public class ControllerSetupController : MonoBehaviour
         root = uiDocument.rootVisualElement;
         
         // Find controller components
-        config = FindObjectOfType<ControllerConfig>();
-        rcBridge = FindObjectOfType<RCInputBridge>();
+        config = Object.FindFirstObjectByType<ControllerConfig>();
+        rcBridge = Object.FindFirstObjectByType<RCInputBridge>();
         
         if (config == null)
             Debug.LogError("ControllerConfig not found in scene");

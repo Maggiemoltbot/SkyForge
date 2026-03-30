@@ -37,13 +37,13 @@ public class HUDController : MonoBehaviour
         
         // Find references if not assigned
         if (drone == null)
-            drone = FindObjectOfType<DroneController>();
+            drone = Object.FindFirstObjectByType<DroneController>();
             
         if (cameraManager == null)
-            cameraManager = FindObjectOfType<CameraManager>();
+            cameraManager = Object.FindFirstObjectByType<CameraManager>();
             
         if (rcBridge == null)
-            rcBridge = FindObjectOfType<RCInputBridge>();
+            rcBridge = Object.FindFirstObjectByType<RCInputBridge>();
             
         if (drone != null)
             droneRb = drone.GetComponent<Rigidbody>();

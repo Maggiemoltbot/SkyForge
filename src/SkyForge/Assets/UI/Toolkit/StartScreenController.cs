@@ -38,20 +38,20 @@ public class StartScreenController : MonoBehaviour
         
         // Initialize controllers
         if (uiManager == null)
-            uiManager = FindObjectOfType<UIManager>();
+            uiManager = Object.FindFirstObjectByType<UIManager>();
             
         if (controllerSetupController == null)
-            controllerSetupController = FindObjectOfType<ControllerSetupController>();
+            controllerSetupController = Object.FindFirstObjectByType<ControllerSetupController>();
     }
     
     void OnEnable()
     {
         // Ensure UI Manager exists
         if (uiManager == null)
-            uiManager = FindObjectOfType<UIManager>();
+            uiManager = Object.FindFirstObjectByType<UIManager>();
             
         if (controllerSetupController == null)
-            controllerSetupController = FindObjectOfType<ControllerSetupController>();
+            controllerSetupController = Object.FindFirstObjectByType<ControllerSetupController>();
             
         SetupUI();
         BindEvents();
