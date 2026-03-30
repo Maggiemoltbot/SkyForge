@@ -1,456 +1,421 @@
 using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 
-/// <summary>
-/// Reads USB game controller input via the new Unity Input System and
-/// sends RC channel data to Betaflight SITL over UDP port 9004.
-///
-/// Attach to any GameObject, assign a ControllerConfig asset, and press Play.
-/// The script auto-detects the first connected Gamepad.
-/// </summary>
+[DisallowMultipleComponent]
 public class RCInputBridge : MonoBehaviour
 {
-    [Header("Configuration")]
+    [Header("References")]
+    public FlightDynamicsBridge flightDynamicsBridge;
     [SerializeField] private ControllerConfig config;
 
     [Header("Status (read-only)")]
-    [SerializeField] private bool isConnected;
-    [SerializeField] private int packetsSent;
     [SerializeField] private string activeController = "None";
+    [SerializeField] private bool controllerAvailable;
+    [SerializeField] private int packetsSent;
 
     [Header("Debug")]
-    [SerializeField] private bool showChannelValues;
+    [SerializeField] private bool showChannelPreview;
     [SerializeField] private ushort[] channelPreview = new ushort[16];
 
-    // UDP
-    private UdpClient udpClient;
+    private readonly ushort[] channels = new ushort[16];
+    private readonly int[] channelBuffer = new int[16];
 
-    // Timing
-    private float sendInterval;
-    private float timeSinceLastSend;
+    private bool[] auxToggleStates = Array.Empty<bool>();
+    private bool[] auxButtonPrevious = Array.Empty<bool>();
 
-    // AUX toggle state
-    private bool[] auxToggleState;
-    private bool[] auxButtonPrevState;
+    private InputDevice currentDevice;
+    private float sendInterval = 0.01f;
+    private float sendAccumulator;
+    private float lastConfigWarningTime = -10f;
 
-    // Channel values (PWM 1000-2000)
-    private ushort[] channels = new ushort[16];
-
-    void OnEnable()
+    private void Awake()
     {
-        if (config == null)
-        {
-            Debug.LogWarning("[RCInputBridge] ControllerConfig is not assigned yet. Waiting...");
-            return;
-        }
-
-        InitializeUDP();
-    }
-
-    void InitializeUDP()
-    {
-        try
-        {
-            udpClient = new UdpClient();
-            udpClient.Connect(config.bfSITLIPAddress, config.rcPort);
-            isConnected = true;
-            Debug.Log($"[RCInputBridge] UDP connected to {config.bfSITLIPAddress}:{config.rcPort}");
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"[RCInputBridge] Failed to connect UDP: {e.Message}");
-            isConnected = false;
-            return;
-        }
-
-        sendInterval = 1f / config.sendRateHz;
-        timeSinceLastSend = 0f;
-
-        // Init AUX toggle states
-        int auxCount = config.auxMappings != null ? config.auxMappings.Length : 0;
-        auxToggleState = new bool[auxCount];
-        auxButtonPrevState = new bool[auxCount];
-
-        // Init channels to safe defaults
         ResetChannels();
-
-        // Detect controller
-        DetectController();
+        SyncAuxCaches();
+        UpdateSendInterval();
     }
 
-    void OnDisable()
+    private void OnValidate()
     {
-        if (udpClient != null)
-        {
-            udpClient.Close();
-            udpClient = null;
-        }
-
-        isConnected = false;
-        packetsSent = 0;
-        activeController = "None";
+        SyncAuxCaches();
+        UpdateSendInterval();
     }
 
-    void Update()
+    private void Update()
     {
-        // Lazy init: if config was assigned after OnEnable
-        if (config != null && !isConnected && udpClient == null)
+        if (!EnsureConfig())
         {
-            InitializeUDP();
-        }
-        
-        if (!isConnected || udpClient == null) return;
-
-        // Check for controller — try Gamepad first, then Joystick
-        InputDevice device = Gamepad.current;
-        if (device == null)
-            device = Joystick.current;
-        
-        if (device == null)
-        {
-            if (activeController != "None")
-            {
-                activeController = "None";
-                config.controllerName = "None";
-                Debug.LogWarning("[RCInputBridge] Controller disconnected");
-                ResetChannels();
-            }
+            sendAccumulator = 0f;
             return;
         }
 
-        if (activeController != device.displayName)
+        UpdateDevice();
+        UpdateSendInterval();
+
+        if (controllerAvailable)
         {
+            ReadStickInput();
+            ReadAuxButtons();
+            ReadAuxAxes();
+        }
+
+        sendAccumulator += Time.deltaTime;
+        if (sendAccumulator >= sendInterval)
+        {
+            sendAccumulator -= sendInterval;
+            FlushChannels();
+        }
+
+        if (showChannelPreview)
+        {
+            Array.Copy(channels, channelPreview, channels.Length);
+        }
+    }
+
+    private bool EnsureConfig()
+    {
+        if (config != null)
+        {
+            return true;
+        }
+
+        if (Time.unscaledTime - lastConfigWarningTime > 5f)
+        {
+            Debug.LogWarning("[RCInputBridge] No ControllerConfig assigned. Waiting for configuration asset.");
+            lastConfigWarningTime = Time.unscaledTime;
+        }
+
+        return false;
+    }
+
+    private void UpdateDevice()
+    {
+        InputDevice device = Gamepad.current ?? (InputDevice)Joystick.current;
+
+        if (device == null)
+        {
+            if (controllerAvailable)
+            {
+                controllerAvailable = false;
+                activeController = "None";
+                config.controllerName = activeController;
+                ResetChannels();
+                Debug.LogWarning("[RCInputBridge] Controller disconnected.");
+            }
+
+            currentDevice = null;
+            return;
+        }
+
+        if (device != currentDevice)
+        {
+            currentDevice = device;
+            controllerAvailable = true;
             activeController = device.displayName;
             config.controllerName = activeController;
             Debug.Log($"[RCInputBridge] Controller detected: {activeController}");
-            
-            // Log all available controls for debugging
-            foreach (var control in device.allControls)
-            {
-                if (control is AxisControl)
-                    Debug.Log($"  Axis: {control.name} = {((AxisControl)control).ReadValue()}");
-            }
         }
-
-        // Read stick axes (works with both Gamepad and Joystick)
-        ReadStickInputGeneric(device);
-
-        // Read AUX button toggles
-        ReadAuxButtonsGeneric(device);
-
-        // Read AUX axes
-        ReadAuxAxes(device);
-
-        // Send at configured rate
-        timeSinceLastSend += Time.deltaTime;
-        if (timeSinceLastSend >= sendInterval)
-        {
-            timeSinceLastSend -= sendInterval;
-            SendRCPacket();
-        }
-
-        // Debug preview
-        if (showChannelValues)
-            Array.Copy(channels, channelPreview, 16);
     }
 
-    /// <summary>
-    /// Reads stick axes from any InputDevice (Gamepad or Joystick)
-    /// For Joystick: uses stick/x, stick/y, rz, z axes (EdgeTX standard)
-    /// For Gamepad: uses leftStick/rightStick
-    /// </summary>
-    private void ReadStickInputGeneric(InputDevice device)
+    private void ReadStickInput()
+    {
+        if (currentDevice is Gamepad gamepad)
+        {
+            float rollRaw = gamepad.rightStick.x.ReadValue();
+            channels[SafeChannel(config.roll.rcChannel)] = AxisToPwm(rollRaw, config.roll);
+
+            float pitchRaw = gamepad.rightStick.y.ReadValue();
+            channels[SafeChannel(config.pitch.rcChannel)] = AxisToPwm(pitchRaw, config.pitch);
+
+            float throttleRaw = gamepad.leftStick.y.ReadValue();
+            channels[SafeChannel(config.throttle.rcChannel)] = ThrottleToPwm(throttleRaw, config.throttle);
+
+            float yawRaw = gamepad.leftStick.x.ReadValue();
+            channels[SafeChannel(config.yaw.rcChannel)] = AxisToPwm(yawRaw, config.yaw);
+        }
+        else if (currentDevice is Joystick joystick)
+        {
+            float rollRaw = ReadAxis(joystick, "stick/x", 0f);
+            channels[SafeChannel(config.roll.rcChannel)] = AxisToPwm(rollRaw, config.roll);
+
+            float pitchRaw = ReadAxis(joystick, "stick/y", 0f);
+            channels[SafeChannel(config.pitch.rcChannel)] = AxisToPwm(pitchRaw, config.pitch);
+
+            float throttleRaw = ReadAxis(joystick, "z", 0f);
+            channels[SafeChannel(config.throttle.rcChannel)] = ThrottleToPwm(throttleRaw, config.throttle);
+
+            float yawRaw = ReadAxis(joystick, "rz", 0f);
+            channels[SafeChannel(config.yaw.rcChannel)] = AxisToPwm(yawRaw, config.yaw);
+        }
+    }
+
+    private void ReadAuxButtons()
+    {
+        if (config.auxMappings == null || config.auxMappings.Length == 0)
+        {
+            return;
+        }
+
+        EnsureAuxToggleCapacity();
+
+        for (int i = 0; i < config.auxMappings.Length; i++)
+        {
+            var mapping = config.auxMappings[i];
+            int channelIndex = SafeChannel(mapping.rcChannel);
+
+            ButtonControl button = ResolveAuxButton(currentDevice, mapping, i);
+            if (button == null)
+            {
+                channels[channelIndex] = auxToggleStates[i] ? (ushort)2000 : (ushort)1000;
+                continue;
+            }
+
+            bool pressed = button.isPressed;
+            if (pressed && !auxButtonPrevious[i])
+            {
+                auxToggleStates[i] = !auxToggleStates[i];
+            }
+            auxButtonPrevious[i] = pressed;
+
+            channels[channelIndex] = auxToggleStates[i] ? (ushort)2000 : (ushort)1000;
+        }
+    }
+
+    private void ReadAuxAxes()
+    {
+        if (config.auxAxisMappings == null || config.auxAxisMappings.Length == 0 || currentDevice == null)
+        {
+            return;
+        }
+
+        foreach (var mapping in config.auxAxisMappings)
+        {
+            if (string.IsNullOrEmpty(mapping.axisName))
+            {
+                continue;
+            }
+
+            var control = currentDevice.TryGetChildControl(mapping.axisName) as AxisControl;
+            if (control == null)
+            {
+                continue;
+            }
+
+            float value = control.ReadValue();
+            if (mapping.invert)
+            {
+                value = -value;
+            }
+
+            ushort pwm = mapping.mode switch
+            {
+                AuxAxisMode.TwoPosition => value >= mapping.threshold ? (ushort)2000 : (ushort)1000,
+                AuxAxisMode.ThreePosition => value switch
+                {
+                    _ when value > mapping.threshold => (ushort)2000,
+                    _ when value < -mapping.threshold => (ushort)1000,
+                    _ => (ushort)1500
+                },
+                _ => (ushort)1500
+            };
+
+            channels[SafeChannel(mapping.rcChannel)] = pwm;
+        }
+    }
+
+    private float ReadAxis(InputDevice device, string controlName, float defaultValue)
+    {
+        var control = device.TryGetChildControl(controlName) as AxisControl;
+        return control != null ? control.ReadValue() : defaultValue;
+    }
+
+    private ButtonControl ResolveAuxButton(InputDevice device, AuxButtonMapping mapping, int index)
     {
         if (device is Gamepad gamepad)
         {
-            float rollRaw = gamepad.rightStick.x.ReadValue();
-            channels[config.roll.rcChannel] = AxisToPWM(rollRaw, config.roll);
-            float pitchRaw = gamepad.rightStick.y.ReadValue();
-            channels[config.pitch.rcChannel] = AxisToPWM(pitchRaw, config.pitch);
-            float throttleRaw = gamepad.leftStick.y.ReadValue();
-            channels[config.throttle.rcChannel] = ThrottleToPWM(throttleRaw, config.throttle);
-            float yawRaw = gamepad.leftStick.x.ReadValue();
-            channels[config.yaw.rcChannel] = AxisToPWM(yawRaw, config.yaw);
-        }
-        else if (device is Joystick joystick)
-        {
-            // EdgeTX/OpenTX USB Joystick: axes are stick/x, stick/y, stick/z, stick/rz etc.
-            // TX16S Channel mapping: Axis0=Roll, Axis1=Pitch, Axis2=Throttle, Axis3=Yaw (AETR)
-            var stick = joystick.stick;
-            float rollRaw = ReadAxisSafe(device, "stick/x", 0);     // Axis 0 - Aileron
-            float pitchRaw = ReadAxisSafe(device, "stick/y", 0);    // Axis 1 - Elevator
-            float throttleRaw = ReadAxisSafe(device, "z", 0);       // Axis 2 - Throttle
-            float yawRaw = ReadAxisSafe(device, "rz", 0);           // Axis 3 - Rudder
-            
-            channels[config.roll.rcChannel] = AxisToPWM(rollRaw, config.roll);
-            channels[config.pitch.rcChannel] = AxisToPWM(pitchRaw, config.pitch);
-            channels[config.throttle.rcChannel] = ThrottleToPWM(throttleRaw, config.throttle);
-            channels[config.yaw.rcChannel] = AxisToPWM(yawRaw, config.yaw);
-        }
-    }
+            string name = mapping.buttonName?.ToLowerInvariant() ?? string.Empty;
 
-    private float ReadAxisSafe(InputDevice device, string controlName, float defaultValue)
-    {
-        var control = device.TryGetChildControl(controlName) as AxisControl;
-        if (control != null)
-            return control.ReadValue();
-        return defaultValue;
-    }
+            if (name.Contains("south") || name.Contains("a") || name.Contains("cross"))
+                return gamepad.buttonSouth;
+            if (name.Contains("east") || name.Contains("b") || name.Contains("circle"))
+                return gamepad.buttonEast;
+            if (name.Contains("west") || name.Contains("x") || name.Contains("square"))
+                return gamepad.buttonWest;
+            if (name.Contains("north") || name.Contains("y") || name.Contains("triangle"))
+                return gamepad.buttonNorth;
+            if (name.Contains("left bumper") || name.Contains("lb"))
+                return gamepad.leftShoulder;
+            if (name.Contains("right bumper") || name.Contains("rb"))
+                return gamepad.rightShoulder;
+            if (name.Contains("left trigger") || name.Contains("lt"))
+                return gamepad.leftTrigger;
+            if (name.Contains("right trigger") || name.Contains("rt"))
+                return gamepad.rightTrigger;
 
-    /// <summary>
-    /// Reads AUX buttons from any InputDevice
-    /// </summary>
-    private void ReadAuxButtonsGeneric(InputDevice device)
-    {
-        if (config.auxMappings == null) return;
-
-        for (int i = 0; i < config.auxMappings.Length; i++)
-        {
-            ButtonControl btn = null;
-            if (device is Gamepad gamepad)
-                btn = GetAuxButton(gamepad, i);
-            else if (device is Joystick)
-                btn = device.TryGetChildControl($"button{i}") as ButtonControl;
-
-            if (btn == null) continue;
-
-            bool pressed = btn.isPressed;
-            if (pressed && !auxButtonPrevState[i])
+            return index switch
             {
-                auxToggleState[i] = !auxToggleState[i];
-                channels[config.auxMappings[i].rcChannel] = auxToggleState[i] ? (ushort)2000 : (ushort)1000;
-            }
-            auxButtonPrevState[i] = pressed;
+                0 => gamepad.buttonSouth,
+                1 => gamepad.buttonEast,
+                2 => gamepad.buttonWest,
+                3 => gamepad.buttonNorth,
+                4 => gamepad.leftShoulder,
+                5 => gamepad.rightShoulder,
+                6 => gamepad.leftTrigger,
+                7 => gamepad.rightTrigger,
+                _ => null
+            };
         }
-    }
 
-    /// <summary>
-    /// Reads gamepad stick axes and maps to RC channels
-    /// </summary>
-    private void ReadStickInput(Gamepad gamepad)
-    {
-        // Right stick horizontal → Roll (Aileron)
-        float rollRaw = gamepad.rightStick.x.ReadValue();
-        channels[config.roll.rcChannel] = AxisToPWM(rollRaw, config.roll);
-
-        // Right stick vertical → Pitch (Elevator)
-        float pitchRaw = gamepad.rightStick.y.ReadValue();
-        channels[config.pitch.rcChannel] = AxisToPWM(pitchRaw, config.pitch);
-
-        // Left stick vertical → Throttle
-        // Throttle: -1 (bottom) = 1000, +1 (top) = 2000
-        float throttleRaw = gamepad.leftStick.y.ReadValue();
-        channels[config.throttle.rcChannel] = ThrottleToPWM(throttleRaw, config.throttle);
-
-        // Left stick horizontal → Yaw (Rudder)
-        float yawRaw = gamepad.leftStick.x.ReadValue();
-        channels[config.yaw.rcChannel] = AxisToPWM(yawRaw, config.yaw);
-    }
-
-    /// <summary>
-    /// Reads AUX button toggles — press to toggle between 1000 and 2000
-    /// </summary>
-    private void ReadAuxButtons(Gamepad gamepad)
-    {
-        if (config.auxMappings == null) return;
-
-        for (int i = 0; i < config.auxMappings.Length; i++)
+        if (device is Joystick joystick)
         {
-            ButtonControl button = GetAuxButton(gamepad, i);
-            if (button == null) continue;
-
-            bool pressed = button.isPressed;
-            // Toggle on rising edge
-            if (pressed && !auxButtonPrevState[i])
-            {
-                auxToggleState[i] = !auxToggleState[i];
-            }
-            auxButtonPrevState[i] = pressed;
-
-            channels[config.auxMappings[i].rcChannel] = auxToggleState[i] ? (ushort)2000 : (ushort)1000;
+            return joystick.TryGetChildControl($"button{index}") as ButtonControl;
         }
+
+        return null;
     }
 
-    /// <summary>
-    /// Reads AUX axes and maps them to RC channels
-    /// </summary>
-    private void ReadAuxAxes(InputDevice device)
+    private ushort AxisToPwm(float raw, AxisMapping mapping)
     {
-        if (config.auxAxisMappings == null) return;
-        foreach (var mapping in config.auxAxisMappings)
-        {
-            var control = device.TryGetChildControl(mapping.axisName) as AxisControl;
-            if (control == null) continue;
-            
-            float value = control.ReadValue();
-            if (mapping.invert) value = -value;
-            
-            // Map to PWM: -1..+1 → 1000..2000
-            ushort pwm = (ushort)(1500 + (int)(value * 500));
-            channels[mapping.rcChannel] = pwm;
-        }
-    }
-
-    /// <summary>
-    /// Returns the gamepad button for an AUX mapping index
-    /// Maps index 0-3 to South/East/West/North, 4-5 to shoulders, 6-7 to triggers
-    /// </summary>
-    private ButtonControl GetAuxButton(Gamepad gamepad, int index)
-    {
-        switch (index)
-        {
-            case 0: return gamepad.buttonSouth;
-            case 1: return gamepad.buttonEast;
-            case 2: return gamepad.buttonWest;
-            case 3: return gamepad.buttonNorth;
-            case 4: return gamepad.leftShoulder;
-            case 5: return gamepad.rightShoulder;
-            case 6: return gamepad.leftTrigger;
-            case 7: return gamepad.rightTrigger;
-            default: return null;
-        }
-    }
-
-    /// <summary>
-    /// Converts a stick axis value (-1..+1) to PWM (1000-2000) with deadzone and expo
-    /// Center = 1500
-    /// </summary>
-    private ushort AxisToPWM(float raw, AxisMapping mapping)
-    {
-        if (mapping.invert) raw = -raw;
-
-        // Apply deadzone
-        if (Mathf.Abs(raw) < mapping.deadzone)
-            raw = 0f;
-        else
-            raw = Mathf.Sign(raw) * (Mathf.Abs(raw) - mapping.deadzone) / (1f - mapping.deadzone);
-
-        // Apply expo: output = (1-expo)*input + expo*input^3
-        if (mapping.expo > 0f)
-            raw = (1f - mapping.expo) * raw + mapping.expo * raw * raw * raw;
-
-        // Map -1..+1 to 1000..2000
-        float pwm = 1500f + raw * 500f;
+        float processed = ApplyAxisModifiers(raw, mapping);
+        float pwm = 1500f + processed * 500f;
         return (ushort)Mathf.Clamp(Mathf.RoundToInt(pwm), 1000, 2000);
     }
 
-    /// <summary>
-    /// Converts throttle axis (-1..+1) to PWM (1000-2000)
-    /// Unlike other axes: -1 = 1000 (idle), +1 = 2000 (full)
-    /// </summary>
-    private ushort ThrottleToPWM(float raw, AxisMapping mapping)
+    private ushort ThrottleToPwm(float raw, AxisMapping mapping)
     {
-        if (mapping.invert) raw = -raw;
-
-        // Apply deadzone
-        if (Mathf.Abs(raw) < mapping.deadzone)
-            raw = 0f;
-        else
-            raw = Mathf.Sign(raw) * (Mathf.Abs(raw) - mapping.deadzone) / (1f - mapping.deadzone);
-
-        // Apply expo
-        if (mapping.expo > 0f)
-            raw = (1f - mapping.expo) * raw + mapping.expo * raw * raw * raw;
-
-        // Map -1..+1 to 1000..2000 (bottom to top)
-        float pwm = 1500f + raw * 500f;
-        return (ushort)Mathf.Clamp(Mathf.RoundToInt(pwm), 1000, 2000);
+        float processed = ApplyAxisModifiers(raw, mapping);
+        float normalized = (processed + 1f) * 0.5f;
+        float pwm = Mathf.Lerp(1000f, 2000f, Mathf.Clamp01(normalized));
+        return (ushort)Mathf.RoundToInt(pwm);
     }
 
-    /// <summary>
-    /// Sends the current channel state as an RC packet to BF SITL
-    /// </summary>
-    private float lastSendErrorTime;
-
-    private void SendRCPacket()
+    private float ApplyAxisModifiers(float raw, AxisMapping mapping)
     {
-        try
+        if (mapping.invert)
         {
-            RCPacket packet = RCPacket.CreateDefault(Time.timeAsDouble);
-            for (int i = 0; i < 16; i++)
-                packet.SetChannel(i, channels[i]);
+            raw = -raw;
+        }
 
-            byte[] data = StructToBytes(packet);
-            udpClient.Send(data, data.Length);
+        if (Mathf.Abs(raw) < mapping.deadzone)
+        {
+            raw = 0f;
+        }
+        else
+        {
+            float sign = Mathf.Sign(raw);
+            float magnitude = (Mathf.Abs(raw) - mapping.deadzone) / Mathf.Max(1e-5f, 1f - mapping.deadzone);
+            raw = Mathf.Clamp(sign * magnitude, -1f, 1f);
+        }
+
+        if (mapping.expo > 0f)
+        {
+            raw = Mathf.Lerp(raw, raw * raw * raw, Mathf.Clamp01(mapping.expo));
+        }
+
+        return Mathf.Clamp(raw, -1f, 1f);
+    }
+
+    private void FlushChannels()
+    {
+        for (int i = 0; i < channels.Length; i++)
+        {
+            channelBuffer[i] = channels[i];
+        }
+
+        if (flightDynamicsBridge != null)
+        {
+            flightDynamicsBridge.SendRCChannels(channelBuffer);
             packetsSent++;
         }
-        catch (Exception e)
-        {
-            // Rate-limit error logging to once every 5 seconds
-            if (Time.time - lastSendErrorTime > 5f)
-            {
-                Debug.LogWarning($"[RCInputBridge] Send error (BF SITL not running?): {e.Message}");
-                lastSendErrorTime = Time.time;
-            }
-        }
     }
 
-    /// <summary>
-    /// Resets all channels to safe defaults
-    /// </summary>
     private void ResetChannels()
     {
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < channels.Length; i++)
+        {
             channels[i] = 1000;
-
-        // Center sticks (roll, pitch, yaw)
-        channels[config.roll.rcChannel] = 1500;
-        channels[config.pitch.rcChannel] = 1500;
-        channels[config.yaw.rcChannel] = 1500;
-        // Throttle stays at 1000 (idle)
-    }
-
-    /// <summary>
-    /// Detects and logs the first connected gamepad
-    /// </summary>
-    private void DetectController()
-    {
-        var gamepad = Gamepad.current;
-        if (gamepad != null)
-        {
-            activeController = gamepad.displayName;
-            config.controllerName = activeController;
-            Debug.Log($"[RCInputBridge] Controller detected: {activeController}");
         }
-        else
+
+        if (config != null)
         {
-            Debug.LogWarning("[RCInputBridge] No controller connected. Waiting for input device...");
+            channels[SafeChannel(config.roll.rcChannel)] = 1500;
+            channels[SafeChannel(config.pitch.rcChannel)] = 1500;
+            channels[SafeChannel(config.yaw.rcChannel)] = 1500;
+            channels[SafeChannel(config.throttle.rcChannel)] = 1000;
         }
     }
 
-    /// <summary>
-    /// Converts a struct to byte array using Marshal
-    /// </summary>
-    private byte[] StructToBytes<T>(T structure) where T : struct
+    private void SyncAuxCaches()
     {
-        int size = Marshal.SizeOf(structure);
-        byte[] arr = new byte[size];
+        int required = config != null && config.auxMappings != null ? config.auxMappings.Length : 0;
+        if (auxToggleStates.Length != required)
+        {
+            Array.Resize(ref auxToggleStates, required);
+        }
 
-        IntPtr ptr = Marshal.AllocHGlobal(size);
-        Marshal.StructureToPtr(structure, ptr, true);
-        Marshal.Copy(ptr, arr, 0, size);
-        Marshal.FreeHGlobal(ptr);
-
-        return arr;
+        if (auxButtonPrevious.Length != required)
+        {
+            Array.Resize(ref auxButtonPrevious, required);
+        }
     }
 
-    // --- Public API ---
+    private void EnsureAuxToggleCapacity()
+    {
+        if (config == null)
+        {
+            auxToggleStates = Array.Empty<bool>();
+            auxButtonPrevious = Array.Empty<bool>();
+            return;
+        }
 
-    public bool IsConnected => isConnected;
-    public int PacketsSent => packetsSent;
+        if (auxToggleStates.Length != config.auxMappings.Length)
+        {
+            Array.Resize(ref auxToggleStates, config.auxMappings.Length);
+        }
+
+        if (auxButtonPrevious.Length != config.auxMappings.Length)
+        {
+            Array.Resize(ref auxButtonPrevious, config.auxMappings.Length);
+        }
+    }
+
+    private int SafeChannel(int channel)
+    {
+        return Mathf.Clamp(channel, 0, channels.Length - 1);
+    }
+
+    private void UpdateSendInterval()
+    {
+        if (config == null)
+        {
+            sendInterval = 0.01f;
+            return;
+        }
+
+        int rate = Mathf.Max(1, config.sendRateHz);
+        float desiredInterval = 1f / rate;
+        if (!Mathf.Approximately(desiredInterval, sendInterval))
+        {
+            sendInterval = desiredInterval;
+            sendAccumulator = Mathf.Min(sendAccumulator, sendInterval);
+        }
+    }
+
+    public bool IsConnected => flightDynamicsBridge != null && flightDynamicsBridge.IsConnected;
+    public bool HasController => controllerAvailable;
     public string ActiveController => activeController;
+    public int PacketsSent => packetsSent;
+    public ControllerConfig ControllerConfig => config;
 
-    /// <summary>
-    /// Gets the current PWM value for a channel (0-15)
-    /// </summary>
-    public ushort GetChannelValue(int channel)
+    public ushort GetChannelValue(int channelIndex)
     {
-        if (channel < 0 || channel >= 16) return 1500;
-        return channels[channel];
+        if (channelIndex < 0 || channelIndex >= channels.Length)
+        {
+            return 1500;
+        }
+
+        return channels[channelIndex];
     }
 }

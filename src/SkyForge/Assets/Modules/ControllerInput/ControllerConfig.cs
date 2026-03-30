@@ -7,13 +7,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ControllerConfig", menuName = "SkyForge/ControllerConfig", order = 1)]
 public class ControllerConfig : ScriptableObject
 {
-    [Header("Network")]
-    [Tooltip("IP address of the Betaflight SITL simulator")]
-    public string bfSITLIPAddress = "127.0.0.1";
-
-    [Tooltip("UDP port for RC input to Betaflight SITL")]
-    public int rcPort = 9004;
-
+    [Header("Transmission")]
     [Tooltip("Send rate in Hz (how often RC packets are sent)")]
     [Range(10, 500)]
     public int sendRateHz = 100;
@@ -135,8 +129,8 @@ public class AuxAxisMapping
     public AuxAxisMode mode = AuxAxisMode.ThreePosition;
 }
 
-public enum AuxAxisMode 
-{ 
-    TwoPosition, 
-    ThreePosition 
+public enum AuxAxisMode
+{
+    TwoPosition,
+    ThreePosition
 }

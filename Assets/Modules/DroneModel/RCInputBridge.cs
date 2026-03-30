@@ -404,7 +404,8 @@ public class RCInputBridge : MonoBehaviour
         }
     }
 
-    public bool IsConnected => flightDynamicsBridge != null && flightDynamicsBridge.IsConnected && controllerAvailable;
+    public bool IsConnected => flightDynamicsBridge != null && flightDynamicsBridge.IsConnected;
+    public bool HasController => controllerAvailable;
     public string ActiveController => activeController;
     public int PacketsSent => packetsSent;
     public ControllerConfig ControllerConfig => config;
