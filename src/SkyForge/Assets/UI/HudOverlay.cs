@@ -15,11 +15,29 @@ public class HudOverlay : MonoBehaviour
     private Rigidbody droneRb;
     private GUIStyle labelStyle;
     private GUIStyle boxStyle;
+    private GUIStyle hudHeaderStyle;
+    private GUIStyle armArmedStyle;
+    private GUIStyle armDisarmedStyle;
+    private GUIStyle batteryHighStyle;
+    private GUIStyle batteryWarningStyle;
+    private GUIStyle batteryCriticalStyle;
+    private GUIStyle sitlConnectedStyle;
+    private GUIStyle sitlDisconnectedStyle;
+    private Texture2D boxBackgroundTexture;
     
     void Start()
     {
         if (drone != null)
             droneRb = drone.GetComponent<Rigidbody>();
+    }
+    
+    void OnDestroy()
+    {
+        if (boxBackgroundTexture != null)
+        {
+            Destroy(boxBackgroundTexture);
+            boxBackgroundTexture = null;
+        }
     }
     
     void Update()
@@ -43,74 +61,104 @@ public class HudOverlay : MonoBehaviour
             batteryPercent -= drainRatePerSecond * Time.deltaTime;
     }
     
+    void EnsureStylesInitialized()
+    {
+        if (labelStyle != null)
+            return;
+        
+        labelStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 16,
+            fontStyle = FontStyle.Bold
+        };
+        labelStyle.normal.textColor = Color.green;
+        
+        hudHeaderStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 20,
+            fontStyle = FontStyle.Bold
+        };
+        hudHeaderStyle.normal.textColor = Color.magenta;
+        
+        boxStyle = new GUIStyle(GUI.skin.box);
+        boxBackgroundTexture = new Texture2D(1, 1)
+        {
+            hideFlags = HideFlags.HideAndDontSave
+        };
+        boxBackgroundTexture.SetPixel(0, 0, new Color(0, 0, 0, 0.6f));
+        boxBackgroundTexture.Apply();
+        boxStyle.normal.background = boxBackgroundTexture;
+        
+        armArmedStyle = new GUIStyle(labelStyle);
+        armArmedStyle.normal.textColor = Color.red;
+        
+        armDisarmedStyle = new GUIStyle(labelStyle);
+        armDisarmedStyle.normal.textColor = Color.green;
+        
+        batteryHighStyle = new GUIStyle(labelStyle);
+        batteryHighStyle.normal.textColor = Color.green;
+        
+        batteryWarningStyle = new GUIStyle(labelStyle);
+        batteryWarningStyle.normal.textColor = Color.yellow;
+        
+        batteryCriticalStyle = new GUIStyle(labelStyle);
+        batteryCriticalStyle.normal.textColor = Color.red;
+        
+        sitlConnectedStyle = new GUIStyle(labelStyle);
+        sitlConnectedStyle.normal.textColor = Color.green;
+        
+        sitlDisconnectedStyle = new GUIStyle(labelStyle);
+        sitlDisconnectedStyle.normal.textColor = Color.red;
+    }
+    
     void OnGUI()
     {
+        EnsureStylesInitialized();
+        
         // Debug: always show something even if references are null
-        GUI.Label(new Rect(10, 10, 200, 30), "HUD ACTIVE", new GUIStyle(GUI.skin.label) { fontSize = 20, normal = { textColor = Color.magenta } });
+        GUI.Label(new Rect(10f, 10f, 200f, 30f), "HUD ACTIVE", hudHeaderStyle);
         
-        // Setup styles once
-        if (labelStyle == null)
-        {
-            labelStyle = new GUIStyle(GUI.skin.label);
-            labelStyle.fontSize = 16;
-            labelStyle.normal.textColor = Color.green; // HUD green
-            labelStyle.fontStyle = FontStyle.Bold;
-            
-            boxStyle = new GUIStyle(GUI.skin.box);
-            // Semi-transparent dark background
-            Texture2D backgroundTexture = new Texture2D(1, 1);
-            backgroundTexture.SetPixel(0, 0, new Color(0, 0, 0, 0.6f)); // Dark semi-transparent
-            backgroundTexture.Apply();
-            boxStyle.normal.background = backgroundTexture;
-        }
-        
-        float width = 200;
-        float height = 160;
-        float x = Screen.width - width - 10;
-        float y = Screen.height - height - 10;
+        float width = 200f;
+        float height = 160f;
+        float x = Screen.width - width - 10f;
+        float y = Screen.height - height - 10f;
         
         // Background box
-        GUI.Box(new Rect(x, y, width, height), "", boxStyle);
+        GUI.Box(new Rect(x, y, width, height), string.Empty, boxStyle);
         
         // Content
-        float lineY = y + 5;
-        float lineH = 22;
+        float lineY = y + 5f;
+        const float lineH = 22f;
         
         // ALT
-        float alt = drone != null ? drone.transform.position.y : 0;
-        GUI.Label(new Rect(x + 10, lineY, width, lineH), $"ALT: {alt:F1}m", labelStyle);
+        float alt = drone != null ? drone.transform.position.y : 0f;
+        GUI.Label(new Rect(x + 10f, lineY, width, lineH), $"ALT: {alt:F1}m", labelStyle);
         lineY += lineH;
         
         // SPD
-        float spd = droneRb != null ? droneRb.linearVelocity.magnitude : 0; // Unity 6: linearVelocity statt velocity
-        GUI.Label(new Rect(x + 10, lineY, width, lineH), $"SPD: {spd:F1} m/s", labelStyle);
+        float spd = droneRb != null ? droneRb.linearVelocity.magnitude : 0f; // Unity 6: linearVelocity statt velocity
+        GUI.Label(new Rect(x + 10f, lineY, width, lineH), $"SPD: {spd:F1} m/s", labelStyle);
         lineY += lineH;
         
         // MODE
         string mode = cameraManager != null ? cameraManager.CurrentMode.ToString() : "N/A";
-        GUI.Label(new Rect(x + 10, lineY, width, lineH), $"MODE: {mode}", labelStyle);
+        GUI.Label(new Rect(x + 10f, lineY, width, lineH), $"MODE: {mode}", labelStyle);
         lineY += lineH;
         
         // ARM
         string armText = isArmed ? "ARMED" : "DISARMED";
-        Color armColor = isArmed ? Color.red : Color.green;
-        GUIStyle armStyle = new GUIStyle(labelStyle);
-        armStyle.normal.textColor = armColor;
-        GUI.Label(new Rect(x + 10, lineY, width, lineH), armText, armStyle);
+        GUI.Label(new Rect(x + 10f, lineY, width, lineH), armText, isArmed ? armArmedStyle : armDisarmedStyle);
         lineY += lineH;
         
         // BAT
-        Color batColor = batteryPercent > 30 ? Color.green : (batteryPercent > 10 ? Color.yellow : Color.red);
-        GUIStyle batStyle = new GUIStyle(labelStyle);
-        batStyle.normal.textColor = batColor;
-        GUI.Label(new Rect(x + 10, lineY, width, lineH), $"BAT: {batteryPercent:F0}%", batStyle);
+        GUIStyle batteryStyle = batteryPercent > 30f
+            ? batteryHighStyle
+            : (batteryPercent > 10f ? batteryWarningStyle : batteryCriticalStyle);
+        GUI.Label(new Rect(x + 10f, lineY, width, lineH), $"BAT: {batteryPercent:F0}%", batteryStyle);
         lineY += lineH;
         
         // SITL
         bool connected = rcBridge != null && rcBridge.IsConnected;
-        string sitlText = connected ? "SITL: CONNECTED" : "SITL: DISCONNECTED";
-        GUIStyle sitlStyle = new GUIStyle(labelStyle);
-        sitlStyle.normal.textColor = connected ? Color.green : Color.red;
-        GUI.Label(new Rect(x + 10, lineY, width, lineH), sitlText, sitlStyle);
+        GUI.Label(new Rect(x + 10f, lineY, width, lineH), connected ? "SITL: CONNECTED" : "SITL: DISCONNECTED", connected ? sitlConnectedStyle : sitlDisconnectedStyle);
     }
 }
