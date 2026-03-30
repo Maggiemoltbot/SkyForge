@@ -45,3 +45,14 @@ MonoBehaviour:
     buttonName: Button West
   - rcChannel: 7
     buttonName: Button North
+  auxAxisMappings:
+  - rcChannel: 4
+    axisName: 
+    invert: 0
+    threshold: 0.5
+    mode: 1
+  - rcChannel: 5
+    axisName: 
+    invert: 0
+    threshold: 0.5
+    mode: 1
