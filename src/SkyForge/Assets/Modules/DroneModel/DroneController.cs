@@ -14,10 +14,15 @@ public class DroneController : MonoBehaviour
     private bool[] motorDirections = { true, false, false, true }; // FL=CW, FR=CCW, BL=CCW, BR=CW
     private Vector3 lastVelocity;
     private Vector3 cachedLinearAcceleration;
+    private Vector3 initialPosition;
+    private Quaternion initialRotation;
     
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+
+        initialPosition = transform.position;
+        initialRotation = transform.rotation;
         
         // Rigidbody Setup
         if (config != null)
@@ -86,10 +91,10 @@ public class DroneController : MonoBehaviour
     public void ResetDrone()
     {
         // Position auf Startposition
-        transform.position = Vector3.zero;
+        transform.position = initialPosition;
         
-        // Rotation auf Quaternion.identity
-        transform.rotation = Quaternion.identity;
+        // Rotation auf initiale Ausrichtung
+        transform.rotation = initialRotation;
         
         // Velocity/AngularVelocity auf zero
         if (rb != null)
