@@ -25,6 +25,7 @@ public class IMUSimulator : MonoBehaviour
     // Private variables for noise simulation
     private Vector3 gyroBias;
     private Vector3 previousVelocity;
+    private Vector3 cachedLinearAcceleration;
     private System.Random randomGenerator;
 
     void Awake()
@@ -38,6 +39,17 @@ public class IMUSimulator : MonoBehaviour
         // Try to get Rigidbody component if not assigned
         if (droneRigidbody == null)
             droneRigidbody = GetComponent<Rigidbody>();
+
+        if (droneRigidbody != null)
+        {
+            previousVelocity = GetCurrentLinearVelocity();
+        }
+        else
+        {
+            previousVelocity = Vector3.zero;
+        }
+
+        cachedLinearAcceleration = Vector3.zero;
     }
 
     void FixedUpdate()
@@ -51,6 +63,13 @@ public class IMUSimulator : MonoBehaviour
                 RandomGaussian() * gyroBiasDrift * Mathf.Sqrt(Time.fixedDeltaTime)
             );
         }
+
+        if (droneRigidbody == null)
+            return;
+
+        Vector3 currentVelocity = GetCurrentLinearVelocity();
+        cachedLinearAcceleration = (currentVelocity - previousVelocity) / Time.fixedDeltaTime;
+        previousVelocity = currentVelocity;
     }
 
     /// <summary>
@@ -87,12 +106,11 @@ public class IMUSimulator : MonoBehaviour
         if (droneRigidbody == null)
             return Vector3.zero;
 
-        // Calculate acceleration based on velocity change
-        Vector3 acceleration = (droneRigidbody.velocity - previousVelocity) / Time.fixedDeltaTime;
-        previousVelocity = droneRigidbody.velocity;
+        // Use cached acceleration calculated during FixedUpdate to avoid race conditions
+        Vector3 worldAcceleration = cachedLinearAcceleration;
         
         // Get local acceleration (without gravity)
-        Vector3 localAcceleration = transform.InverseTransformDirection(acceleration);
+        Vector3 localAcceleration = transform.InverseTransformDirection(worldAcceleration);
         
         // Add gravity in local space
         Vector3 localGravity = transform.InverseTransformDirection(Physics.gravity);
@@ -107,6 +125,15 @@ public class IMUSimulator : MonoBehaviour
         }
         
         return accelData;
+    }
+
+    private Vector3 GetCurrentLinearVelocity()
+    {
+#if UNITY_6000_0_OR_NEWER
+        return droneRigidbody != null ? droneRigidbody.linearVelocity : Vector3.zero;
+#else
+        return droneRigidbody != null ? droneRigidbody.velocity : Vector3.zero;
+#endif
     }
 
     /// <summary>
