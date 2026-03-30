@@ -90,6 +90,12 @@ public class FlightDynamicsBridge : MonoBehaviour
             pwmReceiver = null;
         }
         
+        if (rcSender != null)
+        {
+            rcSender.Close();
+            rcSender = null;
+        }
+        
         isConnected = false;
         fdmPacketsSent = 0;
         pwmPacketsReceived = 0;
