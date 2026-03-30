@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class RCInputBridge : MonoBehaviour
 {
@@ -16,6 +17,31 @@ public class RCInputBridge : MonoBehaviour
 
     private int[] rcChannels = new int[16]; // Speicher für die 16 RC-Kanäle
     private bool lastAuxState = false; // Zustand der AUX-Zuweisung, um flankengesteuerte Events zu erkennen
+
+    // UI- und Status-Abfragen
+    public bool IsConnected => flightDynamicsBridge != null;
+    public string ActiveController
+    {
+        get
+        {
+            var gamepad = Gamepad.current;
+            if (gamepad != null) return gamepad.displayName;
+
+            var joystick = Joystick.current;
+            if (joystick != null) return joystick.displayName;
+
+            return "None";
+        }
+    }
+
+    /// <summary>
+    /// Gibt den aktuellen Wert eines RC-Kanals zurück
+    /// </summary>
+    public ushort GetChannelValue(int channelIndex)
+    {
+        if (channelIndex < 0 || channelIndex >= 16) return 1500;
+        return (ushort)Mathf.Clamp(rcChannels[channelIndex], 1000, 2000);
+    }
 
     // Beispiele für Joystick-IDs für XBox360 (kann je nach Controller variieren)
     public const string JOY_1 = "joystick button 0"; // Kann für Schalter/D-Pad verwendet werden
