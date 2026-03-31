@@ -130,7 +130,7 @@
     
     <!-- Navigation Buttons -->
     <ui:VisualElement name="navigation" class="navigation">
-      <ui:Button name="prev-button" text="Previous" class="nav-button" />
+      <ui:Button name="previous-button" text="Previous" class="nav-button" />
       <ui:Button name="test-button" text="Test" class="test-button" />
       <ui:Button name="next-button" text="Next" class="nav-button" />
     </ui:VisualElement>

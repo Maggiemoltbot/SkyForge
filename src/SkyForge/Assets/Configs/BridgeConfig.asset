@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: BridgeConfig
   m_EditorClassIdentifier: Assembly-CSharp::BridgeConfig
   bfSITLIPAddress: 127.0.0.1
-  fdmSendPort: 9002
-  pwmReceivePort: 9003
+  fdmSendPort: 9003
+  pwmReceivePort: 9002
   updateFrequency: 400

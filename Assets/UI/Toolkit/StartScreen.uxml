@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ui:UXML xmlns:ui="UnityEngine.UIElements">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
   <ui:VisualElement name="start-screen" class="container">
     
     <!-- Logo -->
@@ -8,21 +8,7 @@
     </ui:VisualElement>
     
     <!-- Maps Grid -->
-    <ui:VisualElement name="maps-grid" class="maps-grid">
-      <ui:Button text="Bicycle" class="map-button" />
-      <ui:Button text="Garden" class="map-button" />
-      <ui:Button text="Stump" class="map-button" />
-      <ui:Button text="Treehill" class="map-button" />
-      <ui:Button text="Flowers" class="map-button" />
-      <ui:Button text="DrJohnson" class="map-button" />
-      <ui:Button text="Truck" class="map-button" />
-      <ui:Button text="Playroom" class="map-button" />
-      <ui:Button text="Kitchen" class="map-button" />
-      <ui:Button text="Room" class="map-button" />
-      <ui:Button text="Counter" class="map-button" />
-      <ui:Button text="Bonsai" class="map-button" />
-      <ui:Button text="Train" class="map-button" />
-    </ui:VisualElement>
+    <ui:ScrollView name="map-grid" class="maps-grid" horizontal-scrolling="false" vertical-scrolling="true" />
     
     <!-- Action Buttons -->
     <ui:VisualElement name="action-buttons" class="action-buttons">
