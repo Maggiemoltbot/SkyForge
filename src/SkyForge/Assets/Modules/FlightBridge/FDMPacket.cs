@@ -11,33 +11,33 @@ public struct FDMPacket
     public double timestamp;           // Sekunden seit Start
     
     // IMU Angular Velocity (rad/s, NED)
-    public float imuAngularVelX;
-    public float imuAngularVelY;
-    public float imuAngularVelZ;
+    public double imuAngularVelX;
+    public double imuAngularVelY;
+    public double imuAngularVelZ;
     
     // IMU Linear Acceleration (m/s², NED)
-    public float imuLinearAccX;
-    public float imuLinearAccY;
-    public float imuLinearAccZ;
+    public double imuLinearAccX;
+    public double imuLinearAccY;
+    public double imuLinearAccZ;
     
     // Attitude Quaternion (NED)
-    public float quatW;
-    public float quatX;
-    public float quatY;
-    public float quatZ;
+    public double quatW;
+    public double quatX;
+    public double quatY;
+    public double quatZ;
     
     // Velocity (m/s, NED)
-    public float velX;
-    public float velY;
-    public float velZ;
+    public double velX;
+    public double velY;
+    public double velZ;
     
     // Position (m, NED)
-    public float posX;
-    public float posY;
-    public float posZ;
+    public double posX;
+    public double posY;
+    public double posZ;
     
     // Barometric Pressure (hPa)
-    public float pressure;
+    public double pressure;
 }
 
 /// <summary>
