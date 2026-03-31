@@ -1,0 +1,12 @@
+set pid_process_denom = 1
+set gyro_lpf1_static_hz = 0
+set gyro_lpf2_static_hz = 0
+set dterm_lpf1_static_hz = 0
+set dterm_lpf2_static_hz = 0
+set dyn_notch_count = 0
+set acc_hardware = VIRTUAL
+set baro_hardware = VIRTUAL
+set small_angle = 180
+feature AIRMODE
+aux 0 0 1 1800 2100 0 0
+save
