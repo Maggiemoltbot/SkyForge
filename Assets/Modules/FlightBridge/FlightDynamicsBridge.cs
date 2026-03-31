@@ -34,7 +34,7 @@ public class FlightDynamicsBridge : MonoBehaviour
     
     // Data handling
     private IPEndPoint pwmEndPoint;
-    private ConcurrentQueue<PWMPacket> pwmPacketQueue = new ConcurrentQueue<PWMPacket>();
+    private readonly ConcurrentQueue<PWMPacket> pwmPacketQueue = new ConcurrentQueue<PWMPacket>();
     private DateTime lastPWMReceivedTime = DateTime.MinValue;
     
     // Timing
@@ -42,33 +42,62 @@ public class FlightDynamicsBridge : MonoBehaviour
     
     void OnEnable()
     {
+        InitializeBridge();
+    }
+    
+    private void InitializeBridge()
+    {
+        CleanupSockets();
+        isConnected = false;
+        fdmPacketsSent = 0;
+        pwmPacketsReceived = 0;
+        lastPWMReceivedTime = DateTime.MinValue;
+
+        if (config == null)
+        {
+            Debug.LogError("FlightDynamicsBridge is missing BridgeConfig reference.");
+            return;
+        }
+
+        if (!IPAddress.TryParse(config.bfSITLIPAddress, out var sitlAddress))
+        {
+            Debug.LogError($"FlightDynamicsBridge received invalid SITL IP address: {config.bfSITLIPAddress}");
+            return;
+        }
+
         try
         {
             Debug.Log("Initializing Flight Dynamics Bridge...");
-            
+
             // Initialize FDM sender
-            fdmSender = new UdpClient();
-            fdmSender.Connect(config.bfSITLIPAddress, config.fdmSendPort);
-            Debug.Log($"FDM sender connected to {config.bfSITLIPAddress}:{config.fdmSendPort}");
-            
+            fdmSender = new UdpClient(AddressFamily.InterNetwork);
+            fdmSender.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            fdmSender.Connect(sitlAddress, config.fdmSendPort);
+            Debug.Log($"FDM sender connected to {sitlAddress}:{config.fdmSendPort}");
+
             // Initialize PWM receiver
-            pwmReceiver = new UdpClient(config.pwmReceivePort);
+            pwmReceiver = new UdpClient(AddressFamily.InterNetwork);
+            pwmReceiver.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            pwmReceiver.Client.Bind(new IPEndPoint(IPAddress.Any, config.pwmReceivePort));
             pwmEndPoint = new IPEndPoint(IPAddress.Any, config.pwmReceivePort);
-            
+
             // Start async receive operation
             pwmReceiver.BeginReceive(OnPWMDataReceived, null);
             Debug.Log($"PWM receiver listening on port {config.pwmReceivePort}");
 
             // Initialize RC sender
-            rcSender = new UdpClient();
-            rcEndPoint = new IPEndPoint(IPAddress.Parse(config.bfSITLIPAddress), config.rcSendPort);
-            Debug.Log($"RC sender initialized for {config.bfSITLIPAddress}:{config.rcSendPort}");
+            rcSender = new UdpClient(AddressFamily.InterNetwork);
+            rcSender.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            rcEndPoint = new IPEndPoint(sitlAddress, config.rcSendPort);
+            rcSender.Connect(rcEndPoint);
+            Debug.Log($"RC sender initialized for {sitlAddress}:{config.rcSendPort}");
 
             isConnected = true;
         }
         catch (Exception e)
         {
             Debug.LogError($"Error initializing Flight Dynamics Bridge: {e.Message}");
+            CleanupSockets();
             isConnected = false;
         }
     }
@@ -76,29 +105,38 @@ public class FlightDynamicsBridge : MonoBehaviour
     void OnDisable()
     {
         Debug.Log("Shutting down Flight Dynamics Bridge...");
-        
-        // Close UDP clients
-        if (fdmSender != null)
-        {
-            fdmSender.Close();
-            fdmSender = null;
-        }
-        
-        if (pwmReceiver != null)
-        {
-            pwmReceiver.Close();
-            pwmReceiver = null;
-        }
-        
-        if (rcSender != null)
-        {
-            rcSender.Close();
-            rcSender = null;
-        }
-        
+        CleanupSockets();
+        rcEndPoint = null;
         isConnected = false;
         fdmPacketsSent = 0;
         pwmPacketsReceived = 0;
+        lastPWMReceivedTime = DateTime.MinValue;
+    }
+
+    private void CleanupSockets()
+    {
+        CloseClient(ref fdmSender);
+        CloseClient(ref pwmReceiver);
+        CloseClient(ref rcSender);
+    }
+
+    private void CloseClient(ref UdpClient client)
+    {
+        if (client != null)
+        {
+            try
+            {
+                client.Close();
+            }
+            catch (Exception)
+            {
+                // ignore during shutdown
+            }
+            finally
+            {
+                client = null;
+            }
+        }
     }
     
     void FixedUpdate()
@@ -324,7 +362,7 @@ public class FlightDynamicsBridge : MonoBehaviour
     /// <param name="channels">Array of 16 channel values in microseconds (typically 1000-2000)</param>
     public void SendRCChannels(int[] channels)
     {
-        if (!isConnected || channels == null || channels.Length < 16 || rcSender == null)
+        if (!isConnected || channels == null || channels.Length < 16 || rcSender == null || rcEndPoint == null)
             return;
         
         try
@@ -343,7 +381,7 @@ public class FlightDynamicsBridge : MonoBehaviour
             
             // Serialize and send
             byte[] data = StructToBytes(packet);
-            rcSender.Send(data, data.Length, rcEndPoint);
+            rcSender.Send(data, data.Length);
         }
         catch (Exception e)
         {

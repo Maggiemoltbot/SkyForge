@@ -81,7 +81,7 @@ fi
 if [[ "$REBUILD" == true ]] || [[ ! -f "$SITL_BIN" ]]; then
     echo "Building Betaflight SITL..."
     cd "$BF_DIR"
-    make TARGET=SITL
+    make TARGET=SITL OBJCOPY=true
     echo "Build complete."
 fi
 

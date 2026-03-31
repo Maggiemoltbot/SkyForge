@@ -11,10 +11,13 @@
 - Packages: `Packages/`
 
 ## Letzte Anpassung
+- **2026-03-31**: FlightDynamicsBridge Socket-Reinitialisierung, StartScreen Null-Schutz, SITL-Build auf macOS gefixt (Makefile + Script-Update).
+  - Durchgeführt von: Maggie, CAIO @ XFLIGHT
 - **2026-03-30**: Projektwurzel bereinigt – `src/SkyForge/` entfernt, `Assets/` direkt in Root verschoben.
-- Durchgeführt von: Maggie, CAIO @ XFLIGHT
-- Vorheriger Zustand: `src/SkyForge/Assets/...`
-- Neuer Zustand: `Assets/...`
+  - Durchgeführt von: Maggie, CAIO @ XFLIGHT
+  - Vorheriger Zustand: `src/SkyForge/Assets/...`
+  - Neuer Zustand: `Assets/...`
+
 
 ## Git
 - Repository: `https://github.com/Maggiemoltbot/SkyForge.git`
