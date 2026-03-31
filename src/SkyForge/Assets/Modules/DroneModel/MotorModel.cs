@@ -31,6 +31,30 @@ public class MotorModel
         };
     }
     
+
+    /// <summary>
+    /// Remaps Betaflight SITL motor outputs to the Unity motor ordering (FL, FR, BL, BR).
+    /// SITL sends motor_speed[3]=BF0, [0]=BF1, [1]=BF2, [2]=BF3.
+    /// </summary>
+    /// <param name="target">Destination array in Unity ordering: FL, FR, BL, BR.</param>
+    /// <param name="motor1">SITL motor_speed[0] (BF1).</param>
+    /// <param name="motor2">SITL motor_speed[1] (BF2).</param>
+    /// <param name="motor3">SITL motor_speed[2] (BF3).</param>
+    /// <param name="motor4">SITL motor_speed[3] (BF0).</param>
+    public static void RemapSitlMotorOrder(float[] target, float motor1, float motor2, float motor3, float motor4)
+    {
+        if (target == null || target.Length < 4)
+        {
+            Debug.LogError("RemapSitlMotorOrder expects an array with four entries.");
+            return;
+        }
+
+        target[0] = motor3; // FrontLeft  <- BF3
+        target[1] = motor4; // FrontRight <- BF0
+        target[2] = motor2; // BackLeft   <- BF2
+        target[3] = motor1; // BackRight  <- BF1
+    }
+
     public static Vector3 CalculateTorque(float[] motorThrusts, float armLength, bool[] motorDirections)
     {
         // Calculate torque based on differential thrust

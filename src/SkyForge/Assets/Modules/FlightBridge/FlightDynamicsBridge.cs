@@ -223,10 +223,7 @@ public class FlightDynamicsBridge : MonoBehaviour
             if (droneController != null)
             {
                 // Apply motor controls to drone controller
-                droneController.motorPWM[0] = packet.motor1;
-                droneController.motorPWM[1] = packet.motor2;
-                droneController.motorPWM[2] = packet.motor3;
-                droneController.motorPWM[3] = packet.motor4;
+                MotorModel.RemapSitlMotorOrder(droneController.motorPWM, packet.motor1, packet.motor2, packet.motor3, packet.motor4);
             }
         }
     }
