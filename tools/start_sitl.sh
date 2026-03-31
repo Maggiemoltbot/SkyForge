@@ -21,6 +21,19 @@ SITL_BIN="$BF_DIR/obj/main/betaflight_SITL.elf"
 WORK_DIR="$PROJECT_DIR/tools/sitl_workdir"
 PID_FILE="$WORK_DIR/sitl.pid"
 
+# Apply macOS-specific Betaflight patch if available
+SITL_PATCH_APPLIED=0
+apply_sitl_patch() {
+    local patch_file="$PROJECT_DIR/tools/patches/betaflight-sitl-macos.patch"
+    if [[ -f "$patch_file" ]]; then
+        if git -C "$BF_DIR" apply --check "$patch_file" > /dev/null 2>&1; then
+            echo "Applying Betaflight SITL macOS compatibility patch..."
+            git -C "$BF_DIR" apply "$patch_file"
+            SITL_PATCH_APPLIED=1
+        fi
+    fi
+}
+
 # Parse arguments
 REBUILD=false
 EXTRA_ARGS=()
@@ -81,7 +94,12 @@ fi
 if [[ "$REBUILD" == true ]] || [[ ! -f "$SITL_BIN" ]]; then
     echo "Building Betaflight SITL..."
     cd "$BF_DIR"
+    apply_sitl_patch
     make TARGET=SITL OBJCOPY=true
+    if [[ $SITL_PATCH_APPLIED -eq 1 ]]; then
+        git -C "$BF_DIR" apply -R "$PROJECT_DIR/tools/patches/betaflight-sitl-macos.patch" > /dev/null 2>&1 || true
+        SITL_PATCH_APPLIED=0
+    fi
     echo "Build complete."
 fi
 

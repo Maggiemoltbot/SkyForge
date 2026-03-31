@@ -1,0 +1,85 @@
+diff --git a/mk/mcu/SITL.mk b/mk/mcu/SITL.mk
+index c8dcd76f3..2f4adcc16 100644
+--- a/mk/mcu/SITL.mk
++++ b/mk/mcu/SITL.mk
+@@ -1,6 +1,7 @@
+ 
+ INCLUDE_DIRS    := $(INCLUDE_DIRS) \
+-                   $(ROOT)/lib/main/dyad
++                   $(ROOT)/lib/main/dyad \
++                   $(ROOT)/src/main
+ 
+ MCU_COMMON_SRC  := $(ROOT)/lib/main/dyad/dyad.c
+ 
+@@ -59,10 +60,15 @@ LD_FLAGS     += \
+               -static-libgcc
+ endif
+ 
++OPTIMISATION_BASE   := -flto -ffast-math -fmerge-all-constants
++
+ ifneq ($(DEBUG),GDB)
+-OPTIMISE_DEFAULT    := -Ofast
+-OPTIMISE_SPEED      := -Ofast
++OPTIMISE_DEFAULT    := -O3 -ffast-math
++OPTIMISE_SPEED      := -O3 -ffast-math
+ OPTIMISE_SIZE       := -Os
+ 
+ LTO_FLAGS           := $(OPTIMISATION_BASE) $(OPTIMISE_SPEED)
+ endif
++
++override EXTRA_FLAGS += -I$(ROOT)/src/main -I$(ROOT)/src/main/common -Wno-error -Wno-unknown-warning-option -Wno-strict-prototypes -Wno-double-promotion -D_POSIX_C_SOURCE=200112L -D_DARWIN_C_SOURCE
++override LD_FLAGS := -lm -lpthread -lc $(ARCH_FLAGS) $(LTO_FLAGS) $(DEBUG_FLAGS)
+diff --git a/src/main/target/SITL/sitl.c b/src/main/target/SITL/sitl.c
+index c3e5e331b..aae88718c 100644
+--- a/src/main/target/SITL/sitl.c
++++ b/src/main/target/SITL/sitl.c
+@@ -27,6 +27,49 @@
+ 
+ #include <errno.h>
+ #include <time.h>
++#include <sys/time.h>
++
++#if defined(__APPLE__)
++#include <unistd.h>
++
++#ifndef CLOCK_MONOTONIC
++#define CLOCK_MONOTONIC 1
++#endif
++
++static int mac_clock_gettime(int clock_id, struct timespec *tp)
++{
++    (void)clock_id;
++    if (tp == NULL) {
++        return -1;
++    }
++    struct timeval tv;
++    gettimeofday(&tv, NULL);
++    tp->tv_sec = tv.tv_sec;
++    tp->tv_nsec = tv.tv_usec * 1000;
++    return 0;
++}
++
++#define clock_gettime(clock_id, tp) mac_clock_gettime(clock_id, tp)
++
++static int mac_nanosleep(const struct timespec *req, struct timespec *rem)
++{
++    if (req == NULL) {
++        return -1;
++    }
++    uint64_t micros = (uint64_t)req->tv_sec * 1000000ULL + req->tv_nsec / 1000ULL;
++    if (micros == 0) {
++        micros = 1;
++    }
++    usleep((useconds_t)micros);
++    if (rem) {
++        rem->tv_sec = 0;
++        rem->tv_nsec = 0;
++    }
++    return 0;
++}
++
++#define nanosleep(req, rem) mac_nanosleep(req, rem)
++#endif
+ 
+ #include "common/maths.h"
+ 
