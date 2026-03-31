@@ -22,5 +22,5 @@ public class BridgeConfig : ScriptableObject
     
     [Header("Update Settings")]
     [Tooltip("Frequency for sending FDM packets (Hz)")]
-    public int updateFrequency = 400;
+    public int updateFrequency = 1000;
 }
