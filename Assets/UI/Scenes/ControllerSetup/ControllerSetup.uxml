@@ -1,0 +1,88 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+  <ui:VisualElement name="controller-setup-container" class="panel">
+    <!-- Header -->
+    <ui:Label name="title-label" text="CONTROLLER SETUP" class="header-title" />
+    
+    <!-- Step Indicator -->
+    <ui:VisualElement name="step-indicator" style="flex-direction: row; justify-content: center; margin-bottom: 20px;">
+      <ui:Label name="step1" text="1" class="label-primary" style="margin: 0 10px;" />
+      <ui:Label name="step-separator1" text=">" class="label-secondary" style="margin: 0 10px;" />
+      <ui:Label name="step2" text="2" class="label-primary" style="margin: 0 10px;" />
+      <ui:Label name="step-separator2" text=">" class="label-secondary" style="margin: 0 10px;" />
+      <ui:Label name="step3" text="3" class="label-primary" style="margin: 0 10px;" />
+      <ui:Label name="step-separator3" text=">" class="label-secondary" style="margin: 0 10px;" />
+      <ui:Label name="step4" text="4" class="label-primary" style="margin: 0 10px;" />
+    </ui:VisualElement>
+    
+    <!-- Wizard Content -->
+    <ui:VisualElement name="wizard-content" style="flex-direction: column; align-items: center;">
+      <!-- Step 1: Select Controller -->
+      <ui:VisualElement name="step1-content" class="wizard-step">
+        <ui:Label name="step1-title" text="SELECT CONTROLLER" class="header-subtitle" />
+        <ui:Label name="step1-instruction" text="Connect your controller and press any button to detect it." class="label-secondary" style="text-align: center; margin-bottom: 20px;" />
+        <ui:Button name="detect-button" text="DETECT CONTROLLER" class="button" style="width: 200px; margin-bottom: 20px;" />
+        <ui:Label name="controller-status" text="No controller detected" class="label-secondary" />
+      </ui:VisualElement>
+      
+      <!-- Step 2: Map Axes -->
+      <ui:VisualElement name="step2-content" class="wizard-step" style="display: none;">
+        <ui:Label name="step2-title" text="MAP AXES" class="header-subtitle" />
+        <ui:Label name="step2-instruction" text="Move each stick and trigger to identify axes." class="label-secondary" style="text-align: center; margin-bottom: 20px;" />
+        <ui:Label name="axis-instruction" text="Move THROTTLE stick..." class="label-primary" style="margin-bottom: 10px;" />
+        <ui:VisualElement name="axes-container" style="flex-direction: column; width: 100%;">
+          <!-- Axis mapping fields will be added dynamically -->
+        </ui:VisualElement>
+      </ui:VisualElement>
+      
+      <!-- Step 3: Calibrate -->
+      <ui:VisualElement name="step3-content" class="wizard-step" style="display: none;">
+        <ui:Label name="step3-title" text="CALIBRATE" class="header-subtitle" />
+        <ui:Label name="step3-instruction" text="Follow the calibration instructions for each axis." class="label-secondary" style="text-align: center; margin-bottom: 20px;" />
+        <ui:Label name="calibration-instruction" text="Press throttle to maximum..." class="label-primary" style="margin-bottom: 10px;" />
+        <ui:VisualElement name="calibration-container" style="flex-direction: column; width: 100%;">
+          <!-- Calibration fields will be added dynamically -->
+        </ui:VisualElement>
+      </ui:VisualElement>
+      
+      <!-- Step 4: Test & Configure -->
+      <ui:VisualElement name="step4-content" class="wizard-step" style="display: none;">
+        <ui:Label name="step4-title" text="TEST & CONFIGURE" class="header-subtitle" />
+        <ui:Label name="step4-instruction" text="Test your setup and adjust parameters." class="label-secondary" style="text-align: center; margin-bottom: 20px;" />
+        
+        <!-- Preview Sticks -->
+        <ui:VisualElement name="stick-preview" style="flex-direction: row; justify-content: space-around; margin-bottom: 30px;">
+          <ui:VisualElement name="left-stick-container" style="flex-direction: column; align-items: center;">
+            <ui:Label text="LEFT STICK" class="label-secondary" style="margin-bottom: 10px;" />
+            <ui:VisualElement name="left-stick" style="width: 100px; height: 100px; background-color: var(--bg-secondary); border-radius: 50px; position: relative;">
+              <ui:VisualElement name="left-stick-thumb" style="width: 20px; height: 20px; background-color: var(--accent-cyan); border-radius: 10px; position: absolute; top: 40px; left: 40px;" />
+            </ui:VisualElement>
+          </ui:VisualElement>
+          
+          <ui:VisualElement name="right-stick-container" style="flex-direction: column; align-items: center;">
+            <ui:Label text="RIGHT STICK" class="label-secondary" style="margin-bottom: 10px;" />
+            <ui:VisualElement name="right-stick" style="width: 100px; height: 100px; background-color: var(--bg-secondary); border-radius: 50px; position: relative;">
+              <ui:VisualElement name="right-stick-thumb" style="width: 20px; height: 20px; background-color: var(--accent-cyan); border-radius: 10px; position: absolute; top: 40px; left: 40px;" />
+            </ui:VisualElement>
+          </ui:VisualElement>
+        </ui:VisualElement>
+        
+        <!-- Configuration Sliders -->
+        <ui:VisualElement name="config-sliders" style="width: 100%;">
+          <!-- Sliders for each axis will be added dynamically -->
+        </ui:VisualElement>
+      </ui:VisualElement>
+    </ui:VisualElement>
+    
+    <!-- Navigation Buttons -->
+    <ui:VisualElement name="navigation-buttons" style="flex-direction: row; justify-content: space-between; margin-top: 30px;">
+      <ui:Button name="back-button" text="BACK" class="button" style="width: 120px;" />
+      <ui:Button name="next-button" text="NEXT" class="button" style="width: 120px;" />
+    </ui:VisualElement>
+    
+    <!-- Save/Load Buttons -->
+    <ui:VisualElement name="save-load-buttons" style="flex-direction: row; justify-content: center; margin-top: 20px;">
+      <ui:Button name="save-button" text="SAVE PROFILE" class="button" style="width: 150px; margin-right: 10px;" />
+      <ui:Button name="load-button" text="LOAD PROFILE" class="button" style="width: 150px;" />
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

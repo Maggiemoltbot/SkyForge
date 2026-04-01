@@ -1,0 +1,58 @@
+.osd-element {
+    font-family: "Courier New", monospace;
+    font-size: 14px;
+    color: #00ff00; /* Betaflight green */
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    padding: 2px 4px;
+    border-radius: 2px;
+    position: absolute;
+    white-space: pre; /* Preserve spaces for alignment */
+}
+
+.battery {
+    top: 20px;
+    left: 20px;
+    text-align: left;
+}
+
+.timer {
+    top: 20px;
+    right: 20px;
+    text-align: right;
+}
+
+.flight-mode {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.altitude {
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.rssi {
+    bottom: 20px;
+    left: 20px;
+    text-align: left;
+}
+
+.armed {
+    bottom: 20px;
+    right: 20px;
+    text-align: right;
+}
+
+/* Warning colors */
+.warning {
+    color: #ffff00; /* Yellow */
+}
+
+.critical {
+    color: #ff0000; /* Red */
+    font-weight: bold;
+}

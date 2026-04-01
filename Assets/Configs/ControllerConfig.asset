@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15d188e5659c441ee9c047e0a6ff7e7b, type: 3}
+  m_Name: ControllerConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ControllerConfig
+  sendRateHz: 100
+  controllerName: None
+  roll:
+    rcChannel: 0
+    invert: 0
+    deadzone: 0.05
+    expo: 0
+  pitch:
+    rcChannel: 1
+    invert: 0
+    deadzone: 0.05
+    expo: 0
+  throttle:
+    rcChannel: 2
+    invert: 0
+    deadzone: 0.02
+    expo: 0
+  yaw:
+    rcChannel: 3
+    invert: 0
+    deadzone: 0.05
+    expo: 0
+  auxMappings:
+  - rcChannel: 4
+    buttonName: Button South
+  - rcChannel: 5
+    buttonName: Button East
+  - rcChannel: 6
+    buttonName: Button West
+  - rcChannel: 7
+    buttonName: Button North
+  auxAxisMappings:
+  - rcChannel: 4
+    axisName: 
+    invert: 0
+    threshold: 0.5
+    mode: 1
+  - rcChannel: 5
+    axisName: 
+    invert: 0
+    threshold: 0.5
+    mode: 1

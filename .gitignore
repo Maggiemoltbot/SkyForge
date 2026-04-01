@@ -17,8 +17,27 @@ Thumbs.db
 *.sln
 .idea/
 
-# Large Assets (GS Maps, PLY, KSPLAT) — too large for GitHub
-/assets/
+# Assets: track code/config, ignore large binaries and GS data
+/assets/StreamingAssets/
+/assets/GaussianAssets/
+/assets/Plugins/
+/assets/3dgs-official/
+/assets/FO_dataset/
+/assets/inria_models/
+/assets/rubble_4k/
+/assets/test_gs/
+/assets/voxel51_gs/
+/assets/mkkellogg_gs/
+/assets/_Recovery/
+/assets/TutorialInfo/
+/assets/Settings/
+/assets/Shaders/
+/assets/inria_models
+/assets/New Folder/
+/assets/New Panel Settings.asset
+/assets/New Panel Settings.asset.meta
+/assets/UI Toolkit/
+/assets/UI Toolkit.meta
 src/SkyForge/Assets/StreamingAssets/GaussianSplats/
 src/SkyForge/Assets/GaussianAssets/
 *.ply

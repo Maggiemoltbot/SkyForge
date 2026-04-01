@@ -1,0 +1,41 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+  <ui:VisualElement name="about-container" class="panel">
+    <!-- Header -->
+    <ui:Label name="title-label" text="ABOUT" class="header-title" />
+    
+    <!-- XFLIGHT Logo -->
+    <ui:VisualElement name="logo-container" style="flex-direction: column; align-items: center; margin-bottom: 30px;">
+      <ui:Label name="xflight-label" text="XFLIGHT" class="header-subtitle" />
+      <ui:Label name="skyforge-label" text="SKYFORGE" class="label-primary" style="font-size: 20px; margin-bottom: 20px;" />
+    </ui:VisualElement>
+    
+    <!-- Version Info -->
+    <ui:VisualElement name="version-container" style="flex-direction: column; align-items: center; margin-bottom: 30px;">
+      <ui:Label name="version-label" text="Version 1.0.0" class="label-primary" style="margin-bottom: 10px;" />
+      <ui:Label name="build-label" text="Build 2026.3.29" class="label-secondary" />
+    </ui:VisualElement>
+    
+    <!-- Credits -->
+    <ui:VisualElement name="credits-container" style="flex-direction: column; align-items: center; margin-bottom: 30px;">
+      <ui:Label name="developed-by" text="Developed by" class="label-secondary" style="margin-bottom: 5px;" />
+      <ui:Label name="developer-name" text="Rudi &amp; Maggie" class="label-primary" style="margin-bottom: 20px;" />
+    </ui:VisualElement>
+    
+    <!-- Links -->
+    <ui:VisualElement name="links-container" style="flex-direction: column; align-items: center; margin-bottom: 30px;">
+      <ui:Label name="links-title" text="Links" class="label-primary" style="margin-bottom: 15px;" />
+      <ui:Button name="website-button" text="xflight-aircrafts.com" class="button" style="width: 250px; margin-bottom: 10px;" />
+      <ui:Button name="github-button" text="GitHub Repository" class="button" style="width: 250px; margin-bottom: 10px;" />
+    </ui:VisualElement>
+    
+    <!-- Copyright -->
+    <ui:VisualElement name="copyright-container" style="flex-direction: column; align-items: center;">
+      <ui:Label name="copyright-label" text="© 2026 XFLIGHT GmbH. All rights reserved." class="label-secondary" style="font-size: 12px;" />
+    </ui:VisualElement>
+    
+    <!-- Back Button -->
+    <ui:VisualElement name="navigation-buttons" style="flex-direction: row; justify-content: center; margin-top: 30px;">
+      <ui:Button name="back-button" text="BACK" class="button" style="width: 120px;" />
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

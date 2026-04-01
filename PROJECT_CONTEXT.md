@@ -1,64 +1,59 @@
-# PROJECT_CONTEXT.md – SkyForge (aktualisiert 2026-04-01)
+# PROJECT_CONTEXT.md – SkyForge (aktualisiert 2026-04-02)
 
 ## Projektstruktur
-- Root: `/Users/rudi/Projects/SkyForge`
-    - `Assets/`                 — Unity Assets (Module, Scripts, UI, Prefabs, Scenes)
-    - `Assets/Modules/`         — Hauptmodule der Simulator-Architektur
-    - `Assets/Scripts/`         — Legacy und allgemeine Controller-/Manager-Implementierungen
-    - `Assets/UI/`              — UI-Komponenten inkl. OSD/Hud
-    - `Assets/Editor/`          — Editor-Tools (Commandhandler, Integrator)
-    - `Assets/Prefabs/`         — Drone/Stage Prefabs
-    - `Assets/Scenes/`          — Haupt- und Test-Szenen
-    - `ProjectSettings/`, `Packages/`, `Tools/` wie Unity Standard
+- Root: `/Users/rudi/Projects/SkyForge` — kanonisches Unity-Projekt (Assets-Ordner = `assets/`)
+- `assets/Modules/`         — Hauptmodule der Simulator-Architektur (je Modul ein CONTEXT.md)
+- `assets/Scripts/`         — Controller, Manager, MCP-Client
+- `assets/Scripts/MCP/`     — MCP JSON-RPC Client (MCPClient.cs, MiniJson.cs)
+- `assets/Scripts/UI/`      — UI Controller (StartScreen, HUD, ControllerSetup, UIManager)
+- `assets/UI/`              — UI-Komponenten (Toolkit UXML/USS, Scenes, Shared Theme)
+- `assets/Editor/`          — Editor-Tools (SkyForgeIntegrator, SkyForgeCommandHandler, ControllerDebugWindow, SuppressInputWarning)
+- `assets/Prefabs/`         — Drone/Stage Prefabs
+- `assets/Scenes/`          — Haupt- und Test-Szenen (SkyForgeMain, MeineScene, TestNachBugs, u.a.)
+- `assets/Configs/`         — ScriptableObject Configs (BridgeConfig, ControllerConfig, DroneConfig)
+- `assets/Rendering/`       — Custom Render Features (DroneOverlayFeature)
+- `assets/Resources/`       — Runtime-ladbare Assets (OSDData, UI Styles, PanelSettings)
+- `tools/`                  — SITL/Build-Skripte (start_sitl.sh, stop_sitl.sh, test_integration.sh, unity_batch.sh)
+- `ProjectSettings/`, `Packages/` — Unity Standard
 
-## Architektur (Module, Stand 2026-04-01)
+### Hinweis zur Verzeichnisstruktur
+`src/SkyForge/Assets/` ist der alte, git-getrackte Quellpfad. Seit Sprint 3 ist `assets/` (Root) das aktive Unity-Projekt.
+`src/SkyForge/` enthält ältere Versionen und wird nicht mehr aktiv genutzt. Konsolidierung nach Root ist abgeschlossen.
 
-### Module mit Kontext-Dokumentation:
-- **FlightBridge**   — UDP-Bridge: Unity ↔ Betaflight. Kontext: `FlightBridge/CONTEXT.md`
-- **DroneModel**     — Umsetzung eines Quadcopter-Physikmodells. Kontext: `DroneModel/CONTEXT.md`
-- **GSScene**        — Gaussian Splatting Scene Loader/Manager. Kontext: `GSScene/CONTEXT.md`
-- **ControllerInput**— Liest Gamecontroller, mappt auf BF RCInput. Kontext: `ControllerInput/CONTEXT.md`
+## Architektur (Module)
 
-### Module ohne Dokumentation (Stand: Sprint 3)
-- OSD                — Artificial Horizon, Battery, RSSI (nur Code, kein CONTEXT.md)
-- Sensors            — IMU-Simulation (Basis-Code, kein CONTEXT.md)
-- (Editor-/Utility: SkyForgeIntegrator, SkyForgeCommandHandler)
-- **Fehlend/Platzhalter nur in Config:**
-    - InputRouter
-    - UIFPV
-    - RLTraining
+Alle Module liegen unter `assets/Modules/`. Jedes Modul hat ein `CONTEXT.md` für Agenten-Zugriff.
 
-## devForge Integration (v3.3)
-- devForge v3.3 (Sprint 3) voll an SkyForge angebunden
-- Orchestra-Compaction-Engine & Multi-Layer-Kontext: siehe `src/orchestra-compaction.ts`
-- Unity-MCP als Phase: TestArena/SkyForgeMain verwendbar, Telemetrie Validation vordefiniert
-- Siehe Configs: `config-v3.3.yaml`, `config-v3.3-skyforge.yaml`
+| Modul | Beschreibung | CONTEXT.md | Quelldateien |
+|-------|-------------|------------|-------------|
+| **FlightBridge** | UDP-Bridge: Unity ↔ Betaflight SITL | Ja | BridgeConfig.cs, CoordinateConverter.cs, FDMPacket.cs, FlightDynamicsBridge.cs |
+| **DroneModel** | Quadcopter-Physikmodell (Motoren, Propeller, FPV-Kamera) | Ja | DroneConfig.cs, DroneController.cs, DroneSetup.cs, FPVCamera.cs, LEDThrustIndicator.cs, MotorModel.cs, PlaceholderMesh.cs, PropellerRotation.cs |
+| **ControllerInput** | Gamecontroller → Betaflight RC-Kanäle | Ja | ControllerConfig.cs, RCPacket.cs |
+| **GSScene** | Gaussian Splatting Scene Loader/Manager | Ja | (nur Kontext-Doku, Code in Plugins) |
+| **OSD** | On-Screen-Display: Artificial Horizon, Batterie, RSSI via MSP | Ja | MSPClient.cs, OSDController.cs, OSDData.cs, OSDOverlay.uss/.uxml |
+| **Sensors** | IMU-Simulation (Gyro, Accelerometer, Barometer) | Ja | IMUSimulator.cs |
+| **UIPanelSettingsUtility** | Fallback-Mechanismus für fehlende PanelSettings Assets | Ja | (Utility, kein eigenständiges Modul) |
 
 ## Quality Gates
 - **Build Gate:** Fehlerfreier Compile im Unity Editor
-- **Unit Test Gate:** Alle NUnit Tests grün (noch keine vollständigen Tests im Repo)
+- **Unit Test Gate:** Alle NUnit Tests grün (noch nicht vollständig)
 - **Integration Gate:** UDP-Bridging mit Betaflight SITL (`tools/start_sitl.sh`)
-- **Render Gate:** GS-Scene >30 FPS bei 4K (noch manuell zu prüfen)
-- **Fly Gate:** 30s Hover Test (Unity+SITL/Telemetry, automatische Validierung per Phase)
-- **RL Gate:** (trained >1000 episodes, monotones Reward, noch offen)
+- **Render Gate:** GS-Scene >30 FPS bei 4K (manuell)
+- **Fly Gate:** 30s Hover Test (Unity + SITL, Telemetrie-Validierung)
 
-## UI-/Toolchain-Probleme (Stand 2026-04-01)
-- **UI Toolkit:** Kein PanelSettings Asset zugewiesen → StartScreen funktioniert, ControllerSetup + HUD ausgegraut
-- **Input:** "Throttle" Input Axis fehlt, wirft Exception (`ControllerSetupController.cs` Line 217), kein automatischer UI-Fallback/Fehlertest
-- **MCP/Toolchain:** unity_scene.sh kennt Schalter --list nicht; unity_console.sh Log-Endpoint umgezogen (404); JSON-RPC/REST API Migration inkonsistent (Legacy/Modern Tools parallel)
-- **DevForge v3.3 Status:** Multi-Tool Parallelisierung/Planhygiene + Reasoning Effort/Compaction Engine technisch aktiv, produktiver Einsatz limitiert (vorerst Test-Phasen)
+## Bekannte Probleme (Stand 2026-04-02)
+- **UI Toolkit:** PanelSettings Asset fehlt bei manchen UIDocuments → StartScreen funktioniert, ControllerSetup + HUD teilweise ausgegraut. UIPanelSettingsUtility als Workaround vorhanden.
+- **Input:** "Throttle" Input Axis wirft Exception in ControllerSetupController.cs — Legacy Input Manager Mapping fehlt.
 
 ## Offene Punkte
-- CONTEXT.md für OSD und Sensors anlegen (Dokumentation fehlt)
-- InputRouter/UIFPV/RLTraining Module initialisieren, Dummy-Kontext+Basisarchitektur einfügen
-- GSScene Performance-Gate (automatisch) als Sprint 4 Ziel
-- UnitTests für alle Kernmodule Sprint 4
-- MCP/Toolchain-Skripte aktualisieren (siehe oben)
+- GSScene Performance-Gate automatisieren
+- Unit Tests für Kernmodule aufbauen
+- `src/SkyForge/` archivieren oder entfernen (alte Kopie)
 
-## Hinweis zu devForge/Codex
-- Codex-Agenten greifen ausschließlich über dokumentierte Module/CONTEXT.md auf Spezialfunktionen zu
-- Alle hier fehlenden Module/Dokumentationen sind für Subagenten NICHT zugreifbar
-- Architektur sicherstellen: Neue Module immer CONTEXT.md anlegen
+## Hinweis für Agenten
+- Agenten greifen über `assets/Modules/<Modul>/CONTEXT.md` auf Modul-Kontext zu
+- Neue Module: immer CONTEXT.md anlegen
+- Pfade beziehen sich auf Root (`assets/`), NICHT auf `src/SkyForge/Assets/`
 
 ---
-*Letzte Aktualisierung: Maggie, Sprint 3, 01.04.2026*
+*Letzte Aktualisierung: 02.04.2026*
