@@ -35,7 +35,20 @@ public class ControllerSetupController : MonoBehaviour
     void Awake()
     {
         m_Document = GetComponent<UIDocument>();
+        if (m_Document == null)
+        {
+            Debug.LogError("ControllerSetupController requires a UIDocument component.");
+            enabled = false;
+            return;
+        }
+
+        UIPanelSettingsUtility.Ensure(m_Document, this, nameof(ControllerSetupController));
         m_Root = m_Document.rootVisualElement;
+        if (m_Root == null)
+        {
+            Debug.LogError("ControllerSetupController could not access rootVisualElement on UIDocument.");
+            enabled = false;
+        }
     }
 
     void OnEnable()

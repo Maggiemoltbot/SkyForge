@@ -20,7 +20,20 @@ public class HUDController : MonoBehaviour
     void Awake()
     {
         m_Document = GetComponent<UIDocument>();
+        if (m_Document == null)
+        {
+            Debug.LogError("HUDController requires a UIDocument component.");
+            enabled = false;
+            return;
+        }
+
+        UIPanelSettingsUtility.Ensure(m_Document, this, nameof(HUDController));
         m_Root = m_Document.rootVisualElement;
+        if (m_Root == null)
+        {
+            Debug.LogError("HUDController could not access rootVisualElement on UIDocument.");
+            enabled = false;
+        }
     }
 
     void OnEnable()

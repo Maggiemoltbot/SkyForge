@@ -34,6 +34,8 @@ public class StartScreenController : MonoBehaviour
             return;
         }
 
+        UIPanelSettingsUtility.Ensure(m_Document, this, nameof(StartScreenController));
+
         m_Root = m_Document.rootVisualElement;
         if (m_Root == null)
         {

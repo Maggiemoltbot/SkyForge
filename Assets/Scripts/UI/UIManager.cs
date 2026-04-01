@@ -49,9 +49,24 @@ public class UIManager : MonoBehaviour
         controllerSetupDoc = controllerSetup.GetComponent<UIDocument>();
         hudDoc = hud.GetComponent<UIDocument>();
 
-        startScreenRoot = startScreenDoc.rootVisualElement;
-        controllerSetupRoot = controllerSetupDoc.rootVisualElement;
-        hudRoot = hudDoc.rootVisualElement;
+        EnsurePanelSettings("StartScreen", startScreenDoc);
+        EnsurePanelSettings("ControllerSetup", controllerSetupDoc);
+        EnsurePanelSettings("HUD", hudDoc);
+
+        startScreenRoot = startScreenDoc != null ? startScreenDoc.rootVisualElement : null;
+        controllerSetupRoot = controllerSetupDoc != null ? controllerSetupDoc.rootVisualElement : null;
+        hudRoot = hudDoc != null ? hudDoc.rootVisualElement : null;
+    }
+
+    private void EnsurePanelSettings(string ownerLabel, UIDocument document)
+    {
+        if (document == null)
+        {
+            Debug.LogError($"UIManager: UIDocument missing on {ownerLabel} object.", this);
+            return;
+        }
+
+        UIPanelSettingsUtility.Ensure(document, this, ownerLabel);
     }
 
     private void SetupEventListeners()
