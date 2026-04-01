@@ -7,7 +7,7 @@ public static class UIPanelSettingsUtility
     private const string ThemeResourcePath = "Styles/SkyForgeTheme";
 
     private static PanelSettings cachedFallback;
-    private static StyleSheet cachedTheme;
+    private static ThemeStyleSheet cachedTheme;
 
     /// <summary>
     /// Ensures that the supplied <see cref="UIDocument"/> has a valid <see cref="PanelSettings"/>.
@@ -58,15 +58,12 @@ public static class UIPanelSettingsUtility
         cachedFallback.hideFlags = HideFlags.DontSave;
         cachedFallback.name = "SkyForgeRuntimePanelSettings";
         cachedFallback.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-        cachedFallback.referenceResolution = new Vector2(1920f, 1080f);
+        cachedFallback.referenceResolution = new Vector2Int(1920, 1080);
         cachedFallback.match = 0.5f;
         cachedFallback.referenceDpi = 96f;
         cachedFallback.targetDisplay = 0;
         cachedFallback.clearDepthStencil = false;
         cachedFallback.clearColor = false;
-        cachedFallback.colorSpace = PanelSettings.ColorSpace.Linear;
-        cachedFallback.matchTargetFragmentSize = true;
-        cachedFallback.vsyncCount = 0;
 
         ApplyThemeIfAvailable(cachedFallback);
 
@@ -82,11 +79,25 @@ public static class UIPanelSettingsUtility
 
         if (cachedTheme == null)
         {
-            cachedTheme = Resources.Load<StyleSheet>(ThemeResourcePath);
+            cachedTheme = Resources.Load<ThemeStyleSheet>(ThemeResourcePath);
             if (cachedTheme == null)
             {
-                // Try legacy resource path as a fallback (allows developers to drop the stylesheet directly into Resources)
-                cachedTheme = Resources.Load<StyleSheet>("SkyForgeTheme");
+                cachedTheme = Resources.Load<ThemeStyleSheet>("SkyForgeTheme");
+            }
+
+            if (cachedTheme == null)
+            {
+                var legacySheet = Resources.Load<StyleSheet>(ThemeResourcePath) ?? Resources.Load<StyleSheet>("SkyForgeTheme");
+                if (legacySheet is ThemeStyleSheet themeSheet)
+                {
+                    cachedTheme = themeSheet;
+                }
+#if UNITY_EDITOR
+                else if (legacySheet != null)
+                {
+                    Debug.LogWarning($"[UIPanelSettingsUtility] Resources asset '{ThemeResourcePath}' is a StyleSheet. Consider converting it to a ThemeStyleSheet for PanelSettings compatibility.");
+                }
+#endif
             }
         }
 

@@ -397,19 +397,31 @@ namespace SkyForge.MCP
                         string json = MiniJson.Serialize(payload);
                         await SendOverWebSocketAsync(json, cancellationToken).ConfigureAwait(false);
 
-                        using var registration = cancellationToken.CanBeCanceled
-                            ? cancellationToken.Register(() =>
+                        CancellationTokenRegistration registration = default;
+                        if (cancellationToken.CanBeCanceled)
+                        {
+                            registration = cancellationToken.Register(() =>
                             {
                                 if (_pendingRequests.TryRemove(requestId, out var pendingTcs))
                                 {
                                     pendingTcs.TrySetCanceled(cancellationToken);
                                 }
-                            })
-                            : null;
+                            });
+                        }
 
-                        var response = await tcs.Task.ConfigureAwait(false);
-                        sentViaWebSocket = true;
-                        return response;
+                        try
+                        {
+                            var response = await tcs.Task.ConfigureAwait(false);
+                            sentViaWebSocket = true;
+                            return response;
+                        }
+                        finally
+                        {
+                            if (cancellationToken.CanBeCanceled)
+                            {
+                                registration.Dispose();
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
