@@ -46,7 +46,7 @@ SkyForge ist als devForge-Projekt registriert mit eigener SkyForge-optimierter C
 
 ### Dual-Modus Workflow
 - **ACP (Claude Code):** Für system-nahe Mono-Tasks (FlightBridge, Betaflight SITL, Cross-Module Bugfixing)
-- **Orchestra (Subagents):** Für parallele Tasks (Codex → C#/Python, Nemotron → Architektur, Qwen3 → QA)
+- **Orchestra (Subagents):** Für parallele Tasks (Codex → C#/Python, Sonnet DO → Architektur, Qwen3 → QA)
 
 ### Modell-Matrix (8 Task-Typen)
 | Task-Typ | Primär | Fallback |
@@ -55,7 +55,7 @@ SkyForge ist als devForge-Projekt registriert mit eigener SkyForge-optimierter C
 | Betaflight/Native | Claude Code | Nemotron |
 | GS Rendering/Shader | gpt-5-codex | Qwen3-Coder |
 | RL/ML Training | gpt-5-codex | Nemotron |
-| Architektur | Nemotron | DeepSeek-R1 |
+| Architektur | Sonnet 4.6 (DO) | Qwen3-235B |
 | Code Review | Qwen3-Coder | Claude Code |
 | Bugfixing (Cross-Module) | Claude Code | gpt-5-codex |
 | UI/UX | gpt-5-codex | Qwen3-30b |
