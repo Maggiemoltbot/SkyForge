@@ -1,0 +1,7 @@
+﻿<Solution>
+  <Project Path="GaussianSplattingEditor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="GaussianSplatting.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="SkyForge.Tests.Editor.csproj" />
+</Solution>
