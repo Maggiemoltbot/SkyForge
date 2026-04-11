@@ -192,8 +192,8 @@ public class StartScreenController : MonoBehaviour
             return;
         }
 
-        string sceneToLoad = "FlightScene"; // Standard, könnte von mapName oder Index abhängen
-        uiManager.LoadScene(sceneToLoad);
+        // Start flight directly in current scene (no scene loading needed)
+        uiManager.HideStartScreenAndStartFlight();
     }
 
     private void OnControllerSetupButtonClicked()

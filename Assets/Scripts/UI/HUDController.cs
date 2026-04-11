@@ -59,45 +59,47 @@ public class HUDController : MonoBehaviour
 
     void UpdateHUD()
     {
+        // Guard: skip if labels not found in UXML
+        if (altitudeValue == null) return;
+
         // --- Simulierte Daten für DEMO ---
-        // In der Realität: Daten von Drone, CameraManager, BatterySystem, SITLConnection
-        Vector3 dronePosition = Vector3.zero; // zB: drone.transform.position;
-        Vector3 droneVelocity = Vector3.zero; // zB: drone.GetVelocity();
-        string currentMode = "FPV"; // zB: CameraManager.currentMode;
-        bool isArmed = true; // zB: drone.armStatus;
-        float battery = 75.0f; // zB: BatterySystem.charge;
-        bool sitlConnected = true; // zB: SITLManager.isConnected;
+        Vector3 dronePosition = Vector3.zero;
+        Vector3 droneVelocity = Vector3.zero;
+        string currentMode = "FPV";
+        bool isArmed = false;  // Default: DISARMED until Betaflight arms
+        float battery = 75.0f;
+        bool sitlConnected = false;
         // --- ENDE Simulation ---
 
-        // Höhe über Grund (angenommen Y=0 ist Boden)
         float altitude = dronePosition.y;
         altitudeValue.text = altitude.ToString("F1");
 
-        // Geschwindigkeit
         float speed = droneVelocity.magnitude;
-        speedValue.text = speed.ToString("F1");
+        if (speedValue != null) speedValue.text = speed.ToString("F1");
 
-        // Modus
-        modeValue.text = currentMode;
+        if (modeValue != null) modeValue.text = currentMode;
 
-        // Armed Status
-        armedValue.text = isArmed ? "ARMED" : "DISARMED";
-        armedValue.RemoveFromClassList("armed");
-        armedValue.RemoveFromClassList("disarmed");
-        armedValue.AddToClassList(isArmed ? "armed" : "disarmed");
-
-        // Batterie
-        batteryValue.text = $"{battery:F0}%";
-        batteryValue.RemoveFromClassList("low");
-        if (battery < 20)
+        if (armedValue != null)
         {
-            batteryValue.AddToClassList("low");
+            armedValue.text = isArmed ? "ARMED" : "DISARMED";
+            armedValue.RemoveFromClassList("armed");
+            armedValue.RemoveFromClassList("disarmed");
+            armedValue.AddToClassList(isArmed ? "armed" : "disarmed");
         }
 
-        // SITL Verbindung
-        sitlValue.text = sitlConnected ? "CONNECTED" : "DISCONNECTED";
-        sitlValue.RemoveFromClassList("connected");
-        sitlValue.RemoveFromClassList("disconnected");
-        sitlValue.AddToClassList(sitlConnected ? "connected" : "disconnected");
+        if (batteryValue != null)
+        {
+            batteryValue.text = $"{battery:F0}%";
+            batteryValue.RemoveFromClassList("low");
+            if (battery < 20) batteryValue.AddToClassList("low");
+        }
+
+        if (sitlValue != null)
+        {
+            sitlValue.text = sitlConnected ? "CONNECTED" : "DISCONNECTED";
+            sitlValue.RemoveFromClassList("connected");
+            sitlValue.RemoveFromClassList("disconnected");
+            sitlValue.AddToClassList(sitlConnected ? "connected" : "disconnected");
+        }
     }
 }
