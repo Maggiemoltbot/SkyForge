@@ -81,7 +81,7 @@ public class UIManager : MonoBehaviour
 
             if (flyButton != null)
             {
-                flyButton.clicked += () => LoadScene("FlightScene");
+                flyButton.clicked += HideStartScreenAndStartFlight;
             }
 
             if (controllerSetupButton != null)
