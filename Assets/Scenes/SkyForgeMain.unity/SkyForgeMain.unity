@@ -817,6 +817,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1544551125}
   - component: {fileID: 1544551126}
+  - component: {fileID: 1544551127}
   m_Layer: 0
   m_Name: FlightDynamics
   m_TagString: Untagged
@@ -857,6 +858,25 @@ MonoBehaviour:
   isConnected: 0
   fdmPacketsSent: 0
   pwmPacketsReceived: 0
+--- !u!114 &1544551127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1544551124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f8e0040f67ce434f8fb66186abe919d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RCInputBridge
+  flightDynamicsBridge: {fileID: 1544551126}
+  config: {fileID: 11400000, guid: ee93b96cf98b64c3eaa1d6c67d35f822, type: 2}
+  activeController: None
+  controllerAvailable: 0
+  packetsSent: 0
+  showChannelPreview: 0
+  channelPreview: 0000000000000000000000000000000000000000000000000000000000000000
 --- !u!1 &1642114271
 GameObject:
   m_ObjectHideFlags: 0
