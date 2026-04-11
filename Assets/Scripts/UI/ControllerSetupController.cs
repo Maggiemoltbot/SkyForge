@@ -222,24 +222,37 @@ public class ControllerSetupController : MonoBehaviour
     
     float GetMockAxisValue()
     {
-        // Mock für differente Achsen
-        switch (currentStep)
+        // Safely read the axis for the current setup step.
+        // Input.GetAxis can throw if no joystick is connected or the axis
+        // is configured as JoystickAxis but no device is present.
+        string axisName = currentStep switch
         {
-            case SetupStep.Throttle:
-                // Throttle: 0% (unten) bis 100% (oben)
-                return Mathf.InverseLerp(-1, 1, Input.GetAxis("Throttle")); // Annahme eines virtuellen Achsen
-            case SetupStep.Yaw:
-                // Yaw: -100% (links) bis +100% (rechts)
-                return Mathf.Abs(Input.GetAxis("Yaw"));
-            case SetupStep.Pitch:
-                // Pitch: -100% (vorne) bis +100% (hinten)
-                return Mathf.Abs(Input.GetAxis("Pitch"));
-            case SetupStep.Roll:
-                // Roll: -100% (links) bis +100% (rechts)
-                return Mathf.Abs(Input.GetAxis("Roll"));
-            default:
-                return 0;
+            SetupStep.Throttle => "Throttle",
+            SetupStep.Yaw     => "Yaw",
+            SetupStep.Pitch   => "Pitch",
+            SetupStep.Roll    => "Roll",
+            _                 => null
+        };
+
+        if (string.IsNullOrEmpty(axisName))
+            return 0f;
+
+        float raw;
+        try
+        {
+            raw = Input.GetAxis(axisName);
         }
+        catch (System.Exception)
+        {
+            // No joystick connected or axis not available — return zero
+            return 0f;
+        }
+
+        // Throttle maps 0-100%, others show absolute magnitude
+        if (currentStep == SetupStep.Throttle)
+            return Mathf.InverseLerp(-1f, 1f, raw);
+
+        return Mathf.Abs(raw);
     }
     
     public void Show()

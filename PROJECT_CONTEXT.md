@@ -33,6 +33,9 @@ Alle Module liegen unter `assets/Modules/`. Jedes Modul hat ein `CONTEXT.md` fü
 | **OSD** | On-Screen-Display: Artificial Horizon, Batterie, RSSI via MSP | Ja | MSPClient.cs, OSDController.cs, OSDData.cs, OSDOverlay.uss/.uxml |
 | **Sensors** | IMU-Simulation (Gyro, Accelerometer, Barometer) | Ja | IMUSimulator.cs |
 | **UIPanelSettingsUtility** | Fallback-Mechanismus für fehlende PanelSettings Assets | Ja | (Utility, kein eigenständiges Modul) |
+| **RLTraining** | RL-Training für autonomes Drohnenfliegen (PPO/SB3) | Ja | (Skeleton, Python + Unity-Konzept) |
+| **InputRouter** | Zentraler Input-Router (Gamepad/RL/Replay → RC-Kanäle) | Ja | (Konzept/Design) |
+| **UIFPV** | FPV-Ansicht mit OSD-Overlay und Post-Processing | Ja | (Konzept/Design) |
 
 ## devForge Integration (v3.3)
 
@@ -74,16 +77,33 @@ OpenClaw-Skill für Unity-Steuerung: `~/.openclaw/workspace/skills/unity-mcp/`
 - **G5 Fly:** Quad schwebt stabil (Position Error < 0.5m über 10s)
 - **G6 RL:** Training-Reward steigt monoton über 1000 Episodes (noch offen)
 
-## Bekannte Probleme (Stand 2026-04-02)
+## Neue Dateien (Sprint 2026-04-11)
+
+| Datei | Beschreibung |
+|-------|--------------|
+| `assets/Modules/RLTraining/Scripts/DroneRLEnvironment.cs` | Unity-seitiges RL-Environment (TCP-Socket, 18-dim Obs, 4-dim Action, Reward, Done) |
+| `assets/Modules/RLTraining/rl_training/train_hover.py` | Python PPO-Training (Gymnasium DroneHoverEnv, SB3, TensorBoard, Checkpoints) |
+| `assets/Modules/RLTraining/rl_training/requirements.txt` | Python-Abhängigkeiten |
+| `assets/Tests/Editor/DroneModelTests.cs` | Unit Tests für DroneController + MotorModel |
+| `assets/Tests/Editor/FlightBridgeTests.cs` | Unit Tests für FlightBridge + CoordinateConverter |
+| `assets/Tests/Editor/RLEnvironmentTests.cs` | Unit Tests für DroneRLEnvironment (Obs/Action/Reward/Done) |
+| `assets/Tests/Editor/SkyForge.Tests.Editor.asmdef` | Unity Test Assembly Definition |
+
+## Bekannte Probleme (Stand 2026-04-11)
 - **UI Toolkit:** PanelSettings Asset fehlt bei manchen UIDocuments → StartScreen funktioniert, ControllerSetup + HUD teilweise ausgegraut. UIPanelSettingsUtility als Workaround vorhanden.
-- **Input:** "Throttle" Input Axis wirft Exception in ControllerSetupController.cs — Legacy Input Manager Mapping fehlt.
+- ~~**Input:** "Throttle" Input Axis wirft Exception in ControllerSetupController.cs~~ → **BEHOBEN (2026-04-11):** `GetMockAxisValue()` mit try-catch gewrapped, fängt fehlende Joystick-Achse ab.
 
 ## Offene Punkte
 - GSScene Performance-Gate automatisieren (G4)
-- Unit Tests für Kernmodule aufbauen (G2)
-- Geplante Module anlegen: RLTraining, InputRouter, UIFPV (jeweils mit CONTEXT.md)
+- ~~Unit Tests für Kernmodule aufbauen (G2)~~ → **IN ARBEIT (2026-04-11):** Test-Skeleton für DroneModel, FlightBridge, RLEnvironment erstellt
+- ~~Geplante Module anlegen: RLTraining, InputRouter, UIFPV (jeweils mit CONTEXT.md)~~ → **ERLEDIGT (2026-04-11):** CONTEXT.md für alle drei Module erstellt
+- ~~RL-Environment Unity-seitig implementieren~~ → **ERLEDIGT (2026-04-11):** DroneRLEnvironment.cs implementiert
+- ~~Python RL-Training Skeleton erweitern~~ → **ERLEDIGT (2026-04-11):** train_hover.py vollständig (Gymnasium + SB3 + TensorBoard)
 - `src/SkyForge/` archivieren oder entfernen (alte Kopie)
-- Unity-MCP als devForge Test-Phase integrieren (Sprint 2)
+- Unity-MCP als devForge Test-Phase integrieren (Sprint 3)
+- Unity ML-Agents Package installieren (com.unity.ml-agents) — Alternative zu Custom TCP
+- InputRouter.cs implementieren (IInputSource Interface + RLAgentInputSource)
+- G2 Unit Tests: Tests in Unity Test Runner ausführen und grün bekommen
 
 ## Hinweis für Agenten
 - Agenten greifen über `assets/Modules/<Modul>/CONTEXT.md` auf Modul-Kontext zu
@@ -92,4 +112,4 @@ OpenClaw-Skill für Unity-Steuerung: `~/.openclaw/workspace/skills/unity-mcp/`
 - devForge-Configs liegen in `~/DevForge/`, NICHT im SkyForge-Repo
 
 ---
-*Letzte Aktualisierung: 02.04.2026*
+*Letzte Aktualisierung: 11.04.2026*
