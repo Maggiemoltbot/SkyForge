@@ -121,6 +121,17 @@ public class UIManager : MonoBehaviour
             {
                 nextButton.clicked += () => Debug.Log("Next step");
             }
+
+            // Top Back Button
+            var backTopButton = controllerSetupRoot.Q<Button>("back-button-top");
+            if (backTopButton != null)
+            {
+                backTopButton.clicked += () =>
+                {
+                    HideControllerSetup();
+                    ShowStartScreen();
+                };
+            }
         }
     }
 
@@ -143,6 +154,12 @@ public class UIManager : MonoBehaviour
     {
         Time.timeScale = 1;
         startScreen.SetActive(false);
+    }
+
+    public void HideStartScreenAndStartFlight()
+    {
+        HideStartScreen();
+        ShowHUD();
     }
 
     public void ShowControllerSetup()

@@ -79,6 +79,11 @@
       <ui:Button name="next-button" text="NEXT" class="button" style="width: 120px;" />
     </ui:VisualElement>
     
+    <!-- Top Left Back Button -->
+    <ui:VisualElement name="back-button-container" style="position: absolute; top: 20px; left: 20px;">
+      <ui:Button name="back-button-top" text="← Back" class="button-tertiary" />
+    </ui:VisualElement>
+    
     <!-- Save/Load Buttons -->
     <ui:VisualElement name="save-load-buttons" style="flex-direction: row; justify-content: center; margin-top: 20px;">
       <ui:Button name="save-button" text="SAVE PROFILE" class="button" style="width: 150px; margin-right: 10px;" />
