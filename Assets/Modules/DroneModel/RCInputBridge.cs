@@ -137,16 +137,17 @@ public class RCInputBridge : MonoBehaviour
         }
         else if (currentDevice is Joystick joystick)
         {
-            float rollRaw = ReadAxis(joystick, "stick/x", 0f);
+            // C5/DJI FPV Controller: x=Roll, y=Pitch, z=Throttle, rx=Yaw
+            float rollRaw = ReadAxis(joystick, "x", 0f);
             channels[SafeChannel(config.roll.rcChannel)] = AxisToPwm(rollRaw, config.roll);
 
-            float pitchRaw = ReadAxis(joystick, "stick/y", 0f);
+            float pitchRaw = ReadAxis(joystick, "y", 0f);
             channels[SafeChannel(config.pitch.rcChannel)] = AxisToPwm(pitchRaw, config.pitch);
 
             float throttleRaw = ReadAxis(joystick, "z", 0f);
             channels[SafeChannel(config.throttle.rcChannel)] = ThrottleToPwm(throttleRaw, config.throttle);
 
-            float yawRaw = ReadAxis(joystick, "rz", 0f);
+            float yawRaw = ReadAxis(joystick, "rx", 0f);
             channels[SafeChannel(config.yaw.rcChannel)] = AxisToPwm(yawRaw, config.yaw);
         }
     }

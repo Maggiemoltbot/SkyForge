@@ -12,10 +12,10 @@ public class BridgeConfig : ScriptableObject
     public string bfSITLIPAddress = "127.0.0.1";
     
     [Tooltip("UDP port for sending FDM packets to Betaflight SITL")]
-    public int fdmSendPort = 9002;
+    public int fdmSendPort = 9003;
     
     [Tooltip("UDP port for receiving PWM packets from Betaflight SITL")]
-    public int pwmReceivePort = 9003;
+    public int pwmReceivePort = 9002;
     
     [Tooltip("UDP port for sending RC packets to Betaflight SITL")]
     public int rcSendPort = 9004;

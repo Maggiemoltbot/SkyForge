@@ -42,7 +42,7 @@ public struct FDMPacket
 
 /// <summary>
 /// PWM packet structure for receiving motor commands from Betaflight SITL
-/// BF SITL → Unity, UDP Port 9003
+/// BF SITL → Unity, UDP Port 9002
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct PWMPacket
