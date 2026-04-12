@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 /// <summary>
 /// Flight Dynamics Model packet structure for communication with Betaflight SITL
-/// Unity → BF SITL, UDP Port 9002
+/// Unity → BF SITL, UDP Port 9003
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct FDMPacket

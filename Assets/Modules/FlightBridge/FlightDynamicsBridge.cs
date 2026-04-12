@@ -144,7 +144,8 @@ public class FlightDynamicsBridge : MonoBehaviour
         // Check connection status
         CheckConnectionTimeout();
         
-        // Send FDM packet at fixed interval
+        // Always send FDM — even when SITL hasn't responded yet.
+        // This bootstraps the loop: FDM → SITL → PWM → Unity physics → FDM
         SendFDMPacket();
     }
     
@@ -159,7 +160,9 @@ public class FlightDynamicsBridge : MonoBehaviour
     /// </summary>
     private void SendFDMPacket()
     {
-        if (!isConnected || droneController == null || fdmSender == null)
+        // NOTE: Do NOT gate on isConnected — we must keep sending FDM
+        // so SITL can (re)start the PWM loop even after a timeout.
+        if (droneController == null || fdmSender == null)
             return;
             
         try
@@ -281,6 +284,7 @@ public class FlightDynamicsBridge : MonoBehaviour
     
     /// <summary>
     /// Processes received PWM packets on the main thread
+    /// Applies SITL→Unity motor remapping (BF motor order differs from Unity FL/FR/BL/BR)
     /// </summary>
     private void ProcessReceivedPWMPackets()
     {
@@ -288,11 +292,21 @@ public class FlightDynamicsBridge : MonoBehaviour
         {
             if (droneController != null)
             {
-                // Apply motor controls to drone controller
-                droneController.motorPWM[0] = packet.motor1;
-                droneController.motorPWM[1] = packet.motor2;
-                droneController.motorPWM[2] = packet.motor3;
-                droneController.motorPWM[3] = packet.motor4;
+                // SITL sends motor_speed[0]=BF1, [1]=BF2, [2]=BF3, [3]=BF0
+                // Unity expects FL=0, FR=1, BL=2, BR=3
+                // Use MotorModel.RemapSitlMotorOrder for correct mapping
+                MotorModel.RemapSitlMotorOrder(
+                    droneController.motorPWM,
+                    packet.motor1,  // SITL slot 0 = BF1
+                    packet.motor2,  // SITL slot 1 = BF2
+                    packet.motor3,  // SITL slot 2 = BF3
+                    packet.motor4   // SITL slot 3 = BF0
+                );
+
+                if (pwmPacketsReceived % 400 == 0)
+                {
+                    Debug.Log($"[PWM] motors: FL={droneController.motorPWM[0]:F3} FR={droneController.motorPWM[1]:F3} BL={droneController.motorPWM[2]:F3} BR={droneController.motorPWM[3]:F3}");
+                }
             }
         }
     }

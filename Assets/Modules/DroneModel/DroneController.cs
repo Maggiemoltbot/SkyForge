@@ -137,5 +137,5 @@ public class DroneController : MonoBehaviour
     public Vector3 CurrentVelocity => rb != null ? rb.linearVelocity : Vector3.zero;
     public Vector3 CurrentAngularVelocity => rb != null ? rb.angularVelocity : Vector3.zero;
     public Vector3 CurrentLinearAcceleration => cachedLinearAcceleration;
-    public float CurrentPressure => 1013.25f; // Standard sea level hPa (placeholder)
+    public float CurrentPressure => 101325f; // Standard sea level in Pascals (SITL expects Pa)
 }

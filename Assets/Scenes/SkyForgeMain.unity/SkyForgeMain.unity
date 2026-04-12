@@ -382,19 +382,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 976457199}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!134 &537557283
-PhysicsMaterial:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 2
-  m_DynamicFriction: 0.6
-  m_StaticFriction: 0.6
-  m_Bounciness: 0
-  m_FrictionCombine: 0
-  m_BounceCombine: 0
 --- !u!1 &712008818
 GameObject:
   m_ObjectHideFlags: 0
@@ -611,7 +598,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 976457193}
-  m_Material: {fileID: 537557283}
+  m_Material: {fileID: 1843586188}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -656,10 +643,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DroneController
   config: {fileID: 11400000, guid: 14fdf3ac2a9b44c658d042f0dc0b0bff, type: 2}
   motorPWM:
-  - 0
-  - 0
-  - 0
-  - 0
+  - 0.5
+  - 0.5
+  - 0.5
+  - 0.5
 --- !u!54 &976457198
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1268,12 +1255,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcbce1640c00347479862fb2ac4a8f65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FlightDynamicsBridge
-  config: {fileID: 0}
+  config: {fileID: 11400000, guid: ba35e4b777b5549578c601a194679d55, type: 2}
   droneController: {fileID: 0}
   imuSimulator: {fileID: 0}
   isConnected: 0
   fdmPacketsSent: 0
   pwmPacketsReceived: 0
+--- !u!134 &1843586188
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ' (Instance) (Instance)'
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
